@@ -1,0 +1,1234 @@
+---
+title: "Detecting Crime patterns in Toronto using Unsupervised Machine Learning"
+author:
+- Shabeeth Syed
+- Julia Mitroi
+- Lingling Zhang
+- Durai Nachiappan
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+  word_document:
+    toc: yes
+  pdf_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+#1. Business understanding 
+
+##1.1. Business objectives 
+###1.1.1. Background 
+
+Analysis of crime is essential for providing safety and security to the civilian population. However, when it comes to crime prevention, determining what works can take a lot of research and investigation. Today, some of that detective work is being made easier thanks to a new emphasis on data science in police and public safety departments. Using techniques from data science and machine learning, critical information can be discovered in crime data, which can help local authorities to prevent or detect crime.  For example, correlations can now be detected between statistics such as school truancy and a rise in neighborhood burglaries. The current generation of police work is finally tapping into complex patterns in high-volume crime datasets, and applying machine learning methods in an effort to reduce crime and make cities and neighborhoods safer.  Data mining, which is the analysis step of pattern recognition and knowledge discovery in databases, is a commonly used method for this purpose. For example, data mining methods based on clustering can be applied to high volume crime datasets in order to find patterns and support decision making.
+
+Along the lines of crime prevention, in recent years crime researchers have pointed to the potential benefits of focusing crime prevention efforts on crime places. A number of studies have found that crime is not spread evenly across city landscapes; rather, there is significant clustering of crime in small or medium-sized places, or hot spots, that generate most of the criminal events, and which can be identified through the practice of analyzing crime data for geographic patterns (clusters). Some researchers have argued that many crime problems can be reduced more efficiently if police officers focused their attention to these deviant places (an activity called hot spot policing); and that focused police interventions, such as directed patrols, proactive arrests, and problem-oriented policing, can produce significant crime prevention gains at high-crime hot spots.  In addition, information about high-crime city areas can help community-based crime prevention organizations to coordinates public safety activities such as neighborhood watch groups.
+
+The focus of this project is applying machine learning methods (data mining) to crime data, for crime prevention and detection in Toronto, Ontario, Canada.  In addition to Toronto Police, there are community-based non-profit crime prevention organizations in the city that coordinate Neighborhood Watch and Vertical Watch groups across Toronto, supporting and empowering neighborhoods, businesses, and individuals to take action to reduce crime.  One of these organizations contracted our group (ML_pros) to complete a data mining project on its behalf, through which to explore and analyze publicly available crime data and find patterns that it could employ for its neighborhood safety programs.  In particular, we were asked to develop a model (algorithm) that the organization could use periodically (e.g., yearly) to monitor areas of high-crime in Toronto.  Our model and results will be shared with Toronto Police for decision-making on crime prevention and detection, and potentially for further analysis.  Additionally, in preliminary discussions about this project with the non-profit crime prevention organization that hired us, we proposed the development of a Crime App, an interactive mapping online tool that provides users with crime location data at the neighborhood level, as our clustering model could potentially be leveraged towards the development of a Crime App.
+
+The main area of interest for our analysis is therefore finding clusters of crime across Toronto's neighborhoods through a model that can be run on crime data for any date range, clusters that could be leveraged towards activities such as hot spot policing and neighborhood watch; and towards the development of an online Crime App.  Overall, we hope that the results obtained through the application of our model will help enhance public safety and awareness in Toronto. 
+
+
+
+###1.1.2. Business Objectives 
+  
+The overarching objective that motivated this project was crime prevention and public safety. A specific business objective is to find areas (clusters) of high-crime areas in Toronto, based on major crime indicator data. Towards this objective, our project proposes a useful solution for assessing crime data, namely a machine learning clustering model, that could identify with precision what are Toronto's most dangerous neighborhoods within any given date range; and that could be generalized to any major crime indicator data and used by police or public safety bodies, or by researchers and community organizations, to make informed decisions, take action, and prevent or mitigate city crime.
+
+###1.1.3. Business Success Criteria 
+
+The statistical decisions made by the above-noted clustering model will be translated into public safety considerations and crime prevention objectives.  From a business point of view, our model will have a successful outcome if by using it, TCPS and Toronto Police make accurate decisions that result in a given, measurable reduction in crime within a given period of time, such as one or three years, in a certain Toronto neighborhood or cluster of neighborhoods.
+
+
+##1.2. Situation assessment
+
+###1.2.1. Inventory of Resources 
+
+Resources available to our project are as follows: 
+
+Personnel: 
+As this was a group project, by working on the project all members of our group assumed the roles of business, data, and data mining experts
+
+Data and data sources: 
+The Major Crime Indicators dataset, which we downloaded from the Toronto Police Service Public Safety Data Portal; access to the Data Portal (website)
+
+Computing resources:
+Windows and Mac platforms, on which we worked on the project
+
+Software: 
+R, R Studio, Microsoft Word and Excel, Shiny
+
+Knowledge sources:
+The ML1000 course material, which includes written and online documentation
+
+
+###1.2.2. Requirements, Assumptions, and Constraints
+
+Key requirements of this project are: 
+The project has to be completed by October 29, 2018
+The project outcomes and report have to meet or exceed the standards for ML1000, and to be deemed usable by a bank for the assessment of credit risk
+
+Assumptions: 
+The data in the Major Crime Indicators dataset are from a normal distribution
+The Major Crime Indicators dataset contains data that are amenable to applying a data mining clustering algorithm
+The users of our model, TCPS and Toronto Police, have the resources to be able to use the model
+
+Constraints:
+The dataset we used came with disclaimers (listed on Section 2.4., on data quality)
+The time allotted to the project, although sufficient it is somewhat limited
+
+
+###1.2.3. Risks and Contingencies 
+ 
+As consultants hired by a Toronto not-for-profit organization to develop high-crime neighborhood clustering models through data mining, there could be the risk of not obtaining additional funding depending on the initial data mining results; as well as the risk of a competitor (individual or organization) coming up with similar/better models before we developed ours, since the Major Crime Indicators data are publicly available, and theoretically any entity could download the dataset and create practical models based on it.
+
+###1.2.4. Terminology
+
+A glossary of terminology relevant to this project is included in Appendix A.
+
+###1.2.5. Costs and Benefits 
+
+In this business context, if our clustering model is accurate in predicting high-crime areas/clusters in the city, the measurable reduction in crime obtained by applying it would be considered to be a benefit both to public safety and to TCPS' and Toronto Police's business operations.  If, by contrary, our model proves to be inaccurate (low algorithm performance), then that would result in costly outcomes (misuse of public funds), such as money spent on activities that do not result in measurable crime reduction outcomes, for example hot spot policing activities in areas that the model predicted are "high-crime" while in reality they were not.
+
+##1.3. Determine data mining goals 
+###1.3.1. Data Mining Goals 
+
+For this project, our group converted the business problem/objective noted in 1.1.2. above into a data mining (analytical) problem, with the intended analysis objective being to develop a clustering model to identify with precision what are Toronto's most dangerous neighborhoods or clusters of neighborhoods for any given date range.  Specifically, this model or algorithm will determine what areas of our city have the highest crime rates, and public safety authorities will be able to use it to make decisions for crime reduction and detection.  In other words, the output of our analysis, or data mining process - the clustering model - will enable the achievement of the business objective.  As part of the data mining process, following the development of the clustering model its performance (accuracy) will also be evaluated.
+
+###1.3.2. Data Mining Success Criteria 
+
+A successful data mining outcome would be a model that correctly identifies clusters of high-crime areas in Toronto.  A tool that we will use to determine the performance (success) of our clustering algorithm is silhouette coefficients, a method of interpretation and validation of consistency within clusters of data.  The silhouette will be calculated with R's silhouette function.
+
+##1.4. Project plan 
+
+###1.4.1. Project Plan
+
+This data mining goal noted above in 1.3.1. is to be achieved by this project by using a) a publicly available major crime indicators dataset, b) R programming, and c) CRISP-DM methodology. 
+
+The broad steps of the data mining project plan are:
+
+-	Identifying the data source (described below, under Data Collection).
+-	Selecting the data points that need to be analyzed; or the entire dataset, if applicable.
+-	Extracting the relevant information from the data for the clustering model.
+-	Identifying the best fitting clustering model.
+-	Interpreting and reporting the results.
+
+
+###1.4.2 Initial Assessment of Tools and Techniques 
+
+As noted, the goal of this project is to develop a clustering algorithm or model, which itself is a tool or technique that can be defined and assessed.  Cluster analysis is an unsupervised learning method that classifies a large group of data points into subsets (clusters) that share the same or similar properties.  A machine learning clustering algorithm discovers the inherent groupings in the data. Thus, clustering is useful in that it can lead to the discovery of previously unknown groupings within the data.  The specific clustering model used in this project is k-means, a partitioning algorithm for clustering data into exactly k (user-defined) clusters that progressively improves the clustering quality and approaches a local optimum.  K-means works as follows: First, k initial cluster centroids are defined; second, each example (observation) is assigned to the closest centroid; third, the new position for each centroid is recomputed as the average of the examples assigned to it; fourth, iterate back to step two until no more changes are done.  
+
+#2. Data understanding 
+
+##2.1. Initial data collection
+###2.1.1. Initial Data Collection Report 
+
+We used the dataset "MCI_2014_to_2017.csv" published on Toronto Police Service's Public Safety Data Portal. It is one of the open datasets published on the portal which "is intended to improve the understanding of policing, improve transparency and enhance confidence through the creation and use of open data for public safety in Toronto".
+
+We downloaded the data from portal's website: http://data.torontopolice.on.ca/datasets/mci-2014-to-2017.
+
+##2.2. Data description
+###2.2.1. Data Description Report 
+
+This dataset includes all Major Crime Indicators (MCI) occurrences by reported date and related offences from 2014 to 2017.
+
+The downloaded dataset has 131,073 observations and 30 attributes. The attributes are mainly about the crimnal records' unique ids, types, locations, occurrence date and time and reported date and time. The first two columns "X" and "Y" are the duplicates of column Long and Lat. Therefore, they are removed for analysis after importing the data.
+
+```{r}
+library(tidyverse)
+#library(ggplot2)
+library(ggthemes)
+#library(dplyr)
+library(viridis)
+library(tidyr)
+library(cluster)
+#library(ggmap)
+#library(maps)
+library(data.table)
+data_raw <- read.csv(choose.files(), stringsAsFactors = FALSE) # read first sheet
+
+```
+
+```{r}
+nrow(data_raw)
+names(data_raw)
+# remove first two columns: "X" "Y"
+data_raw %>% select(-1, -2) -> data
+```
+
+There are 40 observations that have missing values in "occurrenceyear", "occurrenceday" and "occurrencedayofyear". Therefore, there are 120 missing values altogether. As our clustering analysis of would not use these variables, so we do not need to treat missing values. 
+
+```{r}
+sapply(data, function(x) sum(is.na(x))) %>% as.data.frame() -> count.na 
+count.na %>% mutate(column.name = rownames(count.na)) -> count.na
+names(count.na)[1] = "na.count"
+count.na %>% select(column.name, na.count) %>% arrange(desc(na.count))
+```
+
+
+We observed that column "event_unique_id" and "ucr_code" combined together would identify an unique id of each criminal offence, so we created a new column called "uniquekey", and then removed rows with dupulicate "uniquekey".
+
+
+```{r}
+nrow(data)
+data$uniquekey <- paste0(data$event_unique_id, data$ucr_code)
+#data_unique
+data <- subset(data, !duplicated(data$uniquekey))
+nrow(data)
+```
+
+
+##2.3. Data exploration 
+
+###2.3.1. Data Exploration Report 
+
+
+The MCI records were reported from year 2014 to 2017, yet was happened between year 2000 to 2017. For the purpose of analysis, we only selected data that were both occurred in year 2014 to 2017 and reported in year 2014 to 2017. Hence, altogether 119,317 rows were used in our analysis.
+
+
+```{r}
+table(data_raw$reportedyear) %>% as.data.frame() %>% rename(reportedyear = Var1, frequency = Freq)
+table(data_raw$occurrenceyear) %>% as.data.frame() %>% rename(occurrenceyear = Var1, frequency = Freq) 
+# select occarance = 2014 to 2017
+data %>% filter(occurrenceyear %in% c(2014, 2015, 2016, 2017)) -> data
+nrow(data)
+```
+
+
+The reportedmonth and occurrencemonth columns were represented as character value, from "January" to "December", we encode them from 1 to 12 for easier data exploration and analysis.
+
+
+```{r}
+# change month from characterto number
+fun_change_month <- function(data, column){
+  data %>%  mutate(column = ifelse(column == "January", 1,
+                            ifelse(column == "February", 2,
+                            ifelse(column == "March", 3,
+                            ifelse(column == "April", 4,
+                            ifelse(column == "May", 5,
+                            ifelse(column == "June", 6,
+                            ifelse(column == "July", 7,
+                            ifelse(column == "August", 8,
+                            ifelse(column == "September", 9,
+                            ifelse(column == "October", 10,
+                            ifelse(column == "November", 11,
+                            ifelse(column == "December", 12, NA)))))))))))))
+}
+
+fun_change_month(data, data$reportedmonth) %>% mutate(reportedmonth = column) %>% select(-column) -> data
+
+fun_change_month(data, data$occurrencemonth) %>% mutate(occurrencemonth = column) %>% select(-column) -> data
+```
+
+
+Likewise, we transformed columns "reporteddayofweek" and "occurrencedayofweek" from characters "Monday" to "Sunday" to number 1 to 7.
+
+
+```{r}
+# change dayofweek from characterto number
+fun_change_dayofweek <- function(data, column){
+  
+  data %>%  mutate(column = sub(" +$", "", column)) %>% 
+            mutate(column = ifelse(column == "Monday", 1,
+                            ifelse(column == "Tuesday", 2,
+                            ifelse(column == "Wednesday", 3,
+                            ifelse(column == "Thursday", 4,
+                            ifelse(column == "Friday", 5,
+                            ifelse(column == "Saturday", 6,
+                            ifelse(column == "Sunday", 7, NA))))))))
+}
+
+
+fun_change_dayofweek(data, data$reporteddayofweek) %>%
+  mutate(reporteddayofweek = column) %>% select(-column) -> data
+
+fun_change_dayofweek(data, data$occurrencedayofweek) %>%
+  mutate(occurrencedayofweek = column) %>% select(-column) -> data
+```
+
+
+One column 'Division' has space in string, so we removed the space from string.
+
+
+```{r}
+# remove space in Division column
+data$Division <- sub(" +$", "", data$Division)
+```
+
+
+We found many variables (including unique id, offence type, reported and occurrence year, month, date) that should be categorical variables were integer or characters after importing from the .csv file, so we transformed those columns to categorical data.
+
+
+```{r}
+str(data)
+# change some columns as.factor
+factor_vars <- c( "Index_", "event_unique_id",
+                 "premisetype", "ucr_code",           
+                  "ucr_ext", "offence",     
+                  "reportedyear", "reportedmonth",      
+                  "reportedday", "reporteddayofyear",  
+                  "reporteddayofweek", "reportedhour",  
+                  "occurrenceyear", "occurrencemonth",    
+                  "occurrenceday", "occurrencedayofyear",
+                  "occurrencedayofweek", "occurrencehour",     
+                  "MCI", "Division",          
+                  "Hood_ID", "Neighbourhood", "FID")
+
+data[factor_vars] <- lapply(data[factor_vars], function(x) as.factor(x))
+
+# arrange put columns in a good order
+data %>% select(
+                #unique id
+                index = Index_,
+                event_unique_id,
+                FID, 
+                
+                # criminal record
+                MCI,
+                offence,
+                premisetype,
+                ucr_code,
+                ucr_ext,
+                Division,
+                Hood_ID,
+                Neighbourhood,
+                
+                
+                ###report date hour
+                reportedyear,
+                reportedmonth,
+                reportedday,
+                reportedhour,
+                reporteddayofweek,
+                reporteddayofyear,
+                
+                ###occurence date hour
+                occurrenceyear,
+                occurrencemonth,
+                occurrenceday,
+                occurrencehour,
+                occurrencedayofweek,
+                occurrencedayofyear,
+                
+                #geo
+                Lat,
+                Long,
+                
+                #datetime
+                reporteddate,
+                occurrencedate) -> data
+nrow(data)
+```
+
+
+####2.3.1.1. Major Crime Indicators Occurrence Frequency by Type
+
+
+##### 2.3.1.1.1. Frequency Table of Major Crime Indicators Occurrence by Type
+
+
+Our analysis found that during the four years, more than half of the crimes accoured are "Assaults". It occurred 63,726 times. "Theft Over" is the least happened crime, it accounts for 3 percent of all crimes reported.
+
+
+```{r}
+# MCI 
+#frequency table
+table(data$MCI) %>% as.data.frame() %>% rename(MCI = Var1, Frequency = Freq) %>% 
+ 
+left_join(
+   table(data$MCI) %>% prop.table() %>% as.data.frame() %>%
+     rename(MCI = Var1, Percentage = Freq) %>% mutate(Percentage = round(Percentage, 2)), by = "MCI") %>% 
+  
+  arrange(desc(Frequency))
+
+#bar chart 
+ggplot(data, aes(MCI)) + geom_bar(aes(fill = MCI))
+```
+
+
+##### 2.3.1.1.2. Mapping Major Crime Indicators Occurrence by Type
+
+
+We mapped each offence's geolocation on Google map, so that we can see what types of crimes are affecting what which neighbourhood most.
+
+
+```{r, echo = FALSE}
+#geo point plot using GoogleAPI
+#This requires: 
+#1) register a google api to get a key
+# https://console.developers.google.com/projectselector/apis/api/static_maps_backend?supportedpurview=project
+#2) run the following marked code 
+#register_google(key = "",  # your Static Maps API key
+#                account_type = "standard")
+# reference: https://stackoverflow.com/questions/19827598/error-in-get-map-using-ggmap-in-r
+
+## pls mark this chunk if you do not want to register GoogleAPI for now.
+
+library('ggmap')
+ register_google(key = "",  # your Static Maps API key
+                account_type = "standard")
+```
+
+
+```{r}
+sbbox <- make_bbox(lon = data$Long, lat = data$Lat, f = .1)
+sq_map <- get_map(location = sbbox, maptype = "roadmap", source = "google")
+sq_map
+ggmap(sq_map) + 
+  geom_point(data = data, 
+             aes(x = Long, y = Lat, colour = MCI), alpha = .3)
+```
+
+
+##### 2.3.1.1.3. Major Crime Indicators Occurrence Correlation between Two Crimes
+
+
+We also analyzed the occurrence correlation between each of the two crimes across Toronto.
+
+
+```{r}
+### occurrence correlation between two crimes 
+library(Hmisc)
+data %>% group_by(Neighbourhood, MCI) %>% summarise(n = n()) %>% as.data.frame -> n.to.mci
+n.to.mci %>%  spread(key= MCI, value = n) -> a
+cor_result=rcorr(as.matrix(a[,-1]))
+cor_result$P %>% as.data.frame()
+```
+
+
+Our data exploration found that in Toronto if one type of crime happens, there is a high possibility that the other types of crimes would happen, because correlations between each type of crimes have a p-value < 0.001.
+
+
+```{r}
+### occurrence correlation between two crimes 
+library(corrgram)
+
+corrgram(cor_result$P, order=NULL, upper.panel=panel.cor, text.panel=panel.txt,
+         main="Correlogram among Different Types of Crimes")
+```
+
+
+####2.3.1.2. Major Crime Indicators Occurrence Frequency by Neighbourhood
+
+
+##### 2.3.1.2.1. Frequency Table of Major Crime Indicators Occurrence by Neighbourhood
+
+
+By anaylzing Major Crime Indicators' occurrence frequency by neighbourhood, we found that the two most dangerous neighbourhoods in Toronto is Church-Yonge Corridor and Waterfront Communities-The Island. Around 4,000 offences happened in the two neighbourhoods respectively from 2014 to 2017. Crimes happened in these two neighbourhoods account for nearly 70 percent of all offences happened in Toronto. 
+
+The safest places in Toronto are Lambton Baby Point and Yonge-St.Clair, where only less than 200 offences happened during the same period, accounting for 0.1 percent of all offences.
+
+
+```{r}
+#Neighbourhood
+#frequency table
+
+table(data$Neighbourhood) %>% as.data.frame() %>% rename(Neighbourhood = Var1, Frequency = Freq) %>% 
+  left_join(
+   table(data$Neighbourhood) %>% prop.table() %>% as.data.frame() %>%
+     rename(Neighbourhood = Var1, Percentage = Freq) %>% mutate(Percentage = round(Percentage, 3)), by ="Neighbourhood") %>% 
+     arrange(desc(Frequency)) -> n_freq
+
+n_freq
+
+
+#bar chart
+ggplot(data, aes(Neighbourhood)) + geom_bar(aes(fill = Neighbourhood)) + theme(legend.position="none") +
+  theme(axis.text.x=element_text(angle = -90, hjust = 0)) +
+  ggtitle("Count of Total Number of Crimes Happened in Each Neighbourhood")
+
+```
+```{r}
+### occurrence correlation between two crimes 
+ggplot(n.to.mci, aes(Neighbourhood, MCI))+
+  geom_raster(aes(fill = n))+
+  labs(title ="Heat Map between Neighbourhood and Different Types of Crime", x = "Neighbourhood", y = "MCI") +
+  scale_fill_continuous(name = "n") +
+   theme(axis.text.x=element_text(angle = -90, hjust = 0))
+```
+
+
+##### 2.3.1.2.2. Mapping Major Crime Indicators Occurrence by Neighbourhood
+
+
+We visualized the occurrence frequency of the offences in each neigbourhood, so that we can visually observe which neighbourhoods are more dangerous and which neighbourhoods are safer.
+
+The following graph is visualizing the occurrence frequency using 10 colors.
+
+
+```{r}
+# geo neigborhood plot using mapview
+library(mapview) 
+library(geojsonio)
+# import toronto neigborhood map
+Toronto <- geojson_read("toronto_crs84.geojson", what = "sp")
+
+table(data$Neighbourhood) %>% as.data.frame() %>%
+  rename(Neighbourhood = Var1, MCI_frequency = Freq) %>% arrange(MCI_frequency) -> neighbourhood_freq
+
+as.data.frame(Toronto$AREA_NAME) -> a 
+names(a) <- "Neighbourhood"
+
+colors = colorRampPalette(c( "pink","red","black"))
+# try to cut MCI_frequency in to 10 parts (present 10 colors)
+neighbourhood_freq$col.cut10 <- colors(10)[as.numeric(cut(neighbourhood_freq$MCI_frequency,breaks = 10))]
+
+# try to cut MCI_frequency in to 4 parts (present 4 colors)
+neighbourhood_freq$col.cut4 <- colors(4)[as.numeric(cut(neighbourhood_freq$MCI_frequency,breaks = 4))]
+
+a %>% left_join(neighbourhood_freq, by= "Neighbourhood") -> neighbourhood_freq_merge
+Toronto$MCI_frequency <- neighbourhood_freq_merge$MCI_frequency
+Toronto$col.cut10 <- neighbourhood_freq_merge$col.cut10
+Toronto$col.cut4 <- neighbourhood_freq_merge$col.cut4
+
+# plot: cut to 10 parts
+mapview(Toronto, zcol="MCI_frequency", 
+        #col.regions=mapviewGetOption("vector.palette")
+        col.regions=Toronto$col.cut10, 
+        popup= popupTable(Toronto, zcol =c("AREA_NAME","MCI_frequency")),
+        legend = FALSE) -> map10
+knit_print.mapview(map10)
+```
+
+The following graph is visualizing the occurrence frequency using 4 colors.
+
+```{r}
+# plot: cut to 4 parts
+mapview(Toronto, zcol="MCI_frequency", 
+        #col.regions=mapviewGetOption("vector.palette")
+        col.regions=Toronto$col.cut4,
+        popup= popupTable(Toronto, zcol =c("AREA_NAME","MCI_frequency")),
+        legend = FALSE) -> map4
+knit_print.mapview(map4)
+```
+
+
+##### 2.3.1.2.3. Major Crime Indicators Occurrence Correlation between Two Neighborhoods
+
+
+We investigated whether there is any correlation between two Toronto neighborhoods in terms of crime occurrence type.
+
+Below table presents the p-value of correlations among neighborhoods in terms of crime type, and below graph visualized the correlation.
+
+
+```{r}
+
+
+### crime occurrence correlation between two neighborhoods
+n.to.mci %>% spread(key= Neighbourhood, value = n) %>% as.data.frame -> b
+cor_result=rcorr(as.matrix(b[,-1]))
+cor_result$P %>% as.data.frame() -> p
+p
+corrgram(b, order=NULL, panel=panel.shade, text.panel=panel.txt,
+         main="Correlogram among Neighourhoods in terms of Crime Type")
+```
+
+
+We further counted for each neighbourhood, how many of the p-values in above table are less or equal to 0.05. The result is shown in the table below.
+
+
+```{r}
+is.na(p) <- p > 0.05
+p
+```
+
+
+Our analysis found that most neighbourhoods in Toronto are highly "Easy to be infected", which means if a type of crime happens in one neighbourhood, there is a high possibility that the crime would happen in most other neighbourhoods. Among them, Dorset Park, Newtonbrook West, and Runnymede-Bloor West Village are most easily infected neighbourhoods. 
+
+On the other hand, some other neighbourhoods, like West Humber-Clairville, Clanton Park, and Princess-Rosethorn, seem to be less likely to be "infected" by the crime trend of other neighbourhoods. 
+
+
+```{r}
+apply(p, 1, function(x) sum(!is.na(x))) %>% as.data.frame() ->n.to.n_cor.significant
+n.to.n_cor.significant %>% mutate(Neighbourhood = rownames(n.to.n_cor.significant)) -> n.to.n_cor.significant
+names(n.to.n_cor.significant)[1] = "count_p.value.less.than.0.05"
+n.to.n_cor.significant %>% select(Neighbourhood, count_p.value.less.than.0.05) %>% arrange(desc(count_p.value.less.than.0.05)) 
+```
+
+
+West Humber-Clairville is the most unique neighbourhood, it has 0 p-value that is less or equal to 0.05. That means this neighbourhood's crime pattern is completely different from the other parts of Toronto.
+
+To investigate how the crime type in West Humber-Clairville is different from other neighborhoods, we checked our Frequency Table of Major Crime Indicators Occurrence by Neighbourhood, and found that West Humber-Clairville has the third highest crime occurrence.
+
+However, when comparing to the other top 5 neighborhoods with highest crime occurrences, we found that the crime type pattern in West Humber-Clairville is indeed different from the other neighborhoods: although "Assault" is the dominant crime in Toronto in general and in most other neighborhoods, in West Humber-Clairville, "Assault" accounts for just 33 percent of all crimes, ranking as the second most frequently happened crime. On the contrary, "Auto Theft" is the most-often happened crime in this neighborhood.
+
+
+```{r}
+
+
+b[,names(b) %in% c("MCI", unlist(n_freq$Neighbourhood[1:5]) %>% as.character())] %>% 
+  select(1, 3, 5, 6, 2, 4)->x
+x
+
+cbind(x[,1],
+prop.table(x[,2]) %>% round(2),
+prop.table(x[,3]) %>% round(2),
+prop.table(x[,4]) %>% round(2),
+prop.table(x[,5]) %>% round(2),
+prop.table(x[,6]) %>% round(2)) -> top5_crime_prop
+top5_crime_prop
+```
+
+
+####2.3.1.3. Major Crime Indicators Occurrence Frequency by Year
+
+
+##### 2.3.1.3.1 Frequency Table of Major Crime Indicators Occurrence by Year
+
+The number of crimes happened in Toronto continued to increase from 29,025 in the year of 2014 to 30,828 in the year of 2017.
+
+
+```{r}
+
+table(data$occurrenceyear) %>% as.data.frame() %>% rename(occurrence_Year = Var1, Frequency = Freq)
+
+ggplot(data, aes(occurrenceyear)) + geom_bar(aes(fill = occurrenceyear)) 
+```
+
+
+In 2017, 84 offences occurred in Toronto every day on average.
+
+
+```{r}
+#on average, how many offences in year 2017 each day
+table(data$occurrenceyear) %>% as.data.frame() %>% rename(occurrence_Year = Var1, Frequency = Freq) -> occur_freq
+
+occur_freq[4,2]/365 
+
+```
+
+##### 2.3.1.3.2. Mapping Major Crime Indicators occurrence by Year
+
+We visualized Major Crime Indicators occurrence by year on a Toronto map.
+
+
+```{r}
+# Note: please mark this chuck if you do not have googleapi
+library('ggmap')
+
+sbbox <- make_bbox(lon = data$Long, lat = data$Lat, f = .1)
+
+sq_map <- get_map(location = sbbox, maptype = "roadmap", source = "google")
+
+ggmap(sq_map) + 
+  geom_point(data = data, 
+             aes(x = Long, y = Lat, colour = occurrenceyear), alpha = .5)
+```
+
+
+##2.4. Verify data quality 
+###2.4.1. Data Quality Report 
+
+
+There are 40 rows which contain missing values in variables of "occurrenceyear", "occurrenceday" and "occurrencedayofyear". An assumption is being made that missing values comes when the person who reported the offence could not recall the date and time when it was happned. As the missing value accounts for only 0.03% of the raw data, we think the data quality is good.
+
+As the dataset is obtained from the Toronto Police Service Public Safety Data Portal, we assume the data is reliable.
+
+
+# 3 Data Prepration
+
+##3.1 Dataset Description
+
+
+Given below is the description of the variables from the original MCI dataset from Toronto Police.
+
+Attribute 1: X coordinates 
+Used for identifying the nearest intersection node
+
+Attribute 2: Y coordinates
+Used for identifying the nearest intersection node.
+
+Attribute 3: Index
+Unique ID used to identify the incident along with offence type.
+
+Attribute 4: Event Unique ID
+Unique ID used to identify the incident/crime.
+
+Attribute 5: Occurrence date
+Date in which the Crime occurred.
+
+Attibute 6: Reported date
+Date in which the crime was reported.
+
+Attribute 7: Premise type
+Type of Premise in which crime occurred
+
+Attribute 8: UCR code
+Uniform Crime Reporting code. The Uniform Crime Reporting Survey was designed to measure the incidence of crime in Canadian society and its characteristics. The information is used by federal and provincial policy makers as well as public and private researchers.
+
+Attribute 9: UCR code extension
+Uniform Crime Reporting code extension
+
+Attribute 10: Offence
+Offence related to the crime.
+
+Attribute 11: Reported Year
+Year in which the Crime was reported.
+
+Attribute 12: Reported month
+Month in which the crime was reported.
+
+Attribute 13: Reported day
+Day of the month in which the crime was reported.
+
+Attribute 14: Reported day of the year
+Day of the year in which the crime was reported (Julian date).
+
+Attribute 15: Reported day of week
+Day of the week in which the crime was reported.
+
+Attribute 16: Reported hour
+Hour of the day in which the crime was reported.
+
+Attribute 17: Occurrence year
+Year in which the crime occurred.
+
+Attribute 18: Occurrence month
+Month of Occurrence of the crime
+
+Attribute 19: Occurrence day
+Day of the month in which the crime occurred.
+
+Attribute 20: Occurence day of the year
+Julian date in which the crime occurred.
+
+Attribute 21: Occurrence day of week
+Day of week in which the crime occurred.
+
+Attribute 22: Occurrence hour
+Hour of the day in which the crime occurred.
+
+Attribute 23: MCI
+Major Crime Indicator related to the offence.
+
+Attribute 24: Division
+Division Assigned to the crime after offsetting X and & Coordinates to nearest intersection node.
+
+Attribute 25: Hood ID
+Neighbourhood	ID assigned to the crime after offsetting X and & Coordinates to nearest intersection node.
+
+Attribute 26: Neighborhood
+Neighborhood name assigned to occurrence after offsetting X and & Coordinates to nearest intersection node.
+
+Attribute 27: Lat
+Latitude of point extracted after offsetting X and & Coordinates to nearest intersection node.
+
+Attribute 28: Long
+Longitude of point extracted after offsetting X and & Coordinates to nearest intersection node.
+
+
+##3.2 Select and Clean Data
+
+###3.2.1. Rationale for Inclusion/ Exclusion
+
+3.2.1. Rationale for Inclusion / Exclusion
+
+The original dataset had 131,073 crime records that were reported between 2014 and 2017. But some of these records correspond to incidents that occurred prior to 2014. We have excluded those records corresponding to the incidents that occurred prior to 2014 to keep our analysis as relevant as possible to the current situation. 
+
+Also there were duplicate records created for the same event_unique_id and offences. All the variables except Index would have the same values in these duplicate records. After removing the duplicate records and the records corresponding to the incidents that occurred prior to 2014, the number of rows reduced to 119,317.
+
+###3.2.2. Data cleaning report
+
+3.2.2. Data cleaning report
+
+There were 200 missing values in the original dataset from Toronto police. After removing the duplicate records and the records corresponding to the incidents that occurred prior to 2014, missing values reduced to zero.
+
+During our analysis we also noticed that the column 'Division' had spaces included along with its value. We removed the space from this column.
+
+```{r,echo=FALSE}
+data_raw$uniquekey <- paste0(data_raw$event_unique_id, data_raw$ucr_code)
+data_unique <- subset(data_raw, !duplicated(data_raw$uniquekey))
+year_keep <- drops <- c("2014", "2015", "2016", "2017")
+data <- data_unique[data_unique$occurrenceyear %in% year_keep, ]
+nrow(data)
+sum(is.na(data))
+
+# remove space in Division column
+data$Division <- sub(" +$", "", data$Division)
+
+```
+
+##3.3 Construct data
+
+### 3.3.1. Derived attributes
+
+3.3.1. Derived attributes
+
+As discussed in Section 3.2, there were duplicate records in the original dataset. Based on our analysis, we understood that we can have multiple records for the same incident if there were multiple offences involved but there were also cases there were more than 1 record for the same event_unique_id and offence. A new derived variable was created using the combination of both event_unique_id and offence and was used for identifying and removing the duplicate records. The code used for creating a new derived attribute is provided in section 3.2.
+
+### 3.3.2. Single-attribute transformations
+
+3.3.2. Single-attribute transformations
+
+Character variables such as Reported month, Occurred month, Reported day of week and Occurred day of week were transformed to numerical values using the below code,
+
+```{r}
+# change month from characterto number
+fun_change_month <- function(data, column){
+  data %>%  mutate(column = ifelse(column == "January", 1,
+                            ifelse(column == "February", 2,
+                            ifelse(column == "March", 3,
+                            ifelse(column == "April", 4,
+                            ifelse(column == "May", 5,
+                            ifelse(column == "June", 6,
+                            ifelse(column == "July", 7,
+                            ifelse(column == "August", 8,
+                            ifelse(column == "September", 9,
+                            ifelse(column == "October", 10,
+                            ifelse(column == "November", 11,
+                            ifelse(column == "December", 12, NA)))))))))))))
+}
+
+fun_change_month(data, data$reportedmonth) %>% mutate(reportedmonth = column) %>% select(-column) -> data
+
+fun_change_month(data, data$occurrencemonth) %>% mutate(occurrencemonth = column) %>% select(-column) -> data
+
+# change dayofweek from characterto number
+fun_change_dayofweek <- function(data, column){
+  
+  data %>%  mutate(column = sub(" +$", "", column)) %>% 
+            mutate(column = ifelse(column == "Monday", 1,
+                            ifelse(column == "Tuesday", 2,
+                            ifelse(column == "Wednesday", 3,
+                            ifelse(column == "Thursday", 4,
+                            ifelse(column == "Friday", 5,
+                            ifelse(column == "Saturday", 6,
+                            ifelse(column == "Sunday", 7, NA))))))))
+}
+
+
+fun_change_dayofweek(data, data$reporteddayofweek) %>% mutate(reporteddayofweek = column) %>% select(-column) -> data
+fun_change_dayofweek(data, data$occurrencedayofweek) %>% mutate(occurrencedayofweek = column) %>% select(-column) -> data
+
+
+```
+
+
+All the variables considered for Clustering were also factorized using the below code,
+
+
+```{r}
+factor_vars <- c( "Index_", "event_unique_id",
+                 "premisetype", "ucr_code",           
+                  "ucr_ext", "offence",     
+                  "reportedyear", "reportedmonth",      
+                  "reportedday",  "reporteddayofyear",  
+                  "reporteddayofweek",  "reportedhour",  
+                  "occurrenceyear",      "occurrencemonth",    
+                  "occurrenceday",       "occurrencedayofyear",
+                  "occurrencedayofweek", "occurrencehour",     
+                  "MCI", "Division",          
+                  "Hood_ID", "Neighbourhood")
+
+data[factor_vars] <- lapply(data[factor_vars], function(x) as.factor(x))
+str(data)
+ncol(data)
+data %>% select(
+                #unique id
+                index = Index_,
+                event_unique_id,
+          
+                # criminal record
+                MCI,
+                offence,
+                premisetype,
+                ucr_code,
+                ucr_ext,
+                Division,
+                Hood_ID,
+                Neighbourhood,
+                
+                
+                ###report date hour
+                reportedyear,
+                reportedmonth,
+                reportedday,
+                reportedhour,
+                reporteddayofweek,
+                reporteddayofyear,
+                
+                ###occurence date hour
+                occurrenceyear,
+                occurrencemonth,
+                occurrenceday,
+                occurrencehour,
+                occurrencedayofweek,
+                occurrencedayofyear,
+                
+                #geo
+                Lat,
+                Long,
+                
+                #datetime
+                reporteddate,
+                occurrencedate) ->data
+
+```
+
+##3.4 Integrate Data
+### 3.4.1 Aggregate data
+
+
+Visualizations were created by aggregating the data based on offence type and neighborhood to understand how the offences and offence types are distributed across the neighborhoods of Toronto.
+
+
+```{r}
+group <- group_by(data, Neighbourhood, offence)
+offence_by_location <- summarise(group, n=n())
+offence_by_location <- offence_by_location[order(offence_by_location$n, decreasing = TRUE),]
+offence_by_location_top20 <- head(offence_by_location, 20)
+
+ggplot(aes(x = Neighbourhood, y=n, fill = offence), data=offence_by_location_top20) +
+  geom_bar(stat = 'identity', position = position_dodge(), width = 0.8) +
+  xlab('Neighbourhood') +
+  ylab('Number of Occurrence') +
+  ggtitle('Offence Type vs. Neighbourhoods in Toronto') + theme_bw() +
+  theme(plot.title = element_text(size = 16),
+        axis.title = element_text(size = 12, face = "bold"),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = .4))
+
+
+```
+
+
+#3.5 Format Data 
+
+### 3.5.1 Reformatted Data
+
+
+As described in the previous section, day of week and month was transformed to numerical values. 
+
+
+# 4 Modelling
+
+##4.1 Selecting Modelling technique
+
+### 4.1.1 Modelling technique
+
+
+We will be using both K-Means and Hierarchical algorithms to analyze our data with the ultimate goal of identifying Toronto's safer neighborhoods. 
+
+K-Means is one of the most popular "clustering" algorithms. It is the process of partitioning groups of data points into a small number of clusters. Using our crime data, as we measure the number of assaults and other indicators, the neighbourhoods with high numbers of assaults will be grouped together. The goal of K-Means clustering is to assign a cluster to each data point (neighbourhood). We first partition datapoints (neighbourhoods) into k clusters in which each neighbourhood belongs to the cluster with the nearest mean (serving as a prototype of the cluster).
+
+Hierarchical clustering, also known as hierarchical cluster analysis, is an algorithm that groups similar objects into groups called clusters. The endpoint is a set of clusters, where each cluster is distinct from each other cluster, and the objects within each cluster are broadly similar to each other.
+
+
+### 4.1.2 Modelling assumptions
+
+Assumptions of K-means clustering:
+(1) Variance of the distribution of each attribute (variable) is spherical, (2) All variables have the same variance, (3) The prior probability for all k clusters are the same, i.e. each cluster has roughly equal number of observations.
+
+Assumptions of Hierarchical clustering:
+The distance or similarity measures used should be appropriate for the data analyzed. Also, all relevant variables should be included in the analysis. Omission of influential variables can result in a misleading solution. Because hierarchical cluster analysis is an exploratory method, results should be treated as tentative until they are confirmed with an independent sample.
+
+
+## 4.2 Generate test design
+
+### 4.2.1 Test design
+
+Since this is a Unsupervised learning project we did not split the data into train and test.
+
+As described in Data mining success criteria section, we used silhouette coefficients to evaluate our model. Our plan was to use WSS plot to determine the initial value of K, use this value and create the Clusters using K-means and Hierarchical clustering algorithms, then use silhouette plot to evaluate the clusters and then redo the Clustering if neccessary based on the output from silhouette plot.
+
+##4.3 Build Model
+
+###4.3.1 Parameter settings
+
+
+We wanted to cluster the Major Crime Indicators (MCI) by Toronto's neighborhoods. So we grouped and summarised the data by neighborhood using the below code,
+
+```{r}
+
+grp_mci_by_hood <- group_by(data, MCI, Neighbourhood)
+sum_mci_by_hood <- summarise(grp_mci_by_hood, n=n())
+sum_mci_by_hood <- sum_mci_by_hood[c("Neighbourhood", "MCI", "n")]
+sum_mci_by_hood_spread <- spread(sum_mci_by_hood, key = MCI, value = n)
+
+```
+
+
+Then the first column was removed since it is qualitative,
+
+
+```{r}
+z <- sum_mci_by_hood_spread[, -c(1,1)]
+```
+
+
+Then the data is scaled,
+
+
+```{r}
+
+m <- apply(z, 2, mean)
+s <- apply(z, 2, sd)
+z <- scale(z, m, s)
+
+```
+
+
+The next step in Initial parameter setting is to determine the number of Clusters (K) to be used. We used WSS plot to arrive at the initial value of K,
+
+
+```{r}
+
+wss <- (nrow(z)-1) * sum(apply(z, 2, var))
+for (i in 2:10) wss[i] <- sum(kmeans(z, centers=i)$withiness)
+plot(1:10, wss, type='b', xlab='Number of Clusters', ylab='Within groups sum of squares')
+
+```
+
+
+From the above wss plot, we arrived at the initial K value of 2.
+
+
+###4.3.2 Models
+
+
+K-means clustering algorithm was first used with K value of 2 to create the Clusters,
+
+
+```{r}
+kc <- kmeans(z, centers = 2,iter.max = 100)
+kc
+```
+
+
+The model was plotted using the below code,
+
+
+```{r}
+z1 <- data.frame(z, kc$cluster)
+clusplot(z1, kc$cluster, color=TRUE, shade=F, labels=0, lines=0, main='k-Means Cluster Analysis')
+```
+
+
+We also clustered the data using Hierarchical clustering technique,
+
+
+```{r}
+z2 <- data.frame(z)
+distance <- dist(z2, method = "euclidean") #distance matrix
+hc <- hclust(distance, method = "ward") #clustering
+```
+
+
+Hierarchical clusters were plotted using a Dendrogram for interpreting the results, then the dendrogram was cut with k=2.
+
+
+```{r}
+plot(hc, labels = sum_mci_by_hood_spread$Neighbourhood, main='Cluster Dendrogram', cex=0.65)
+rect.hclust(hc,k=2)
+
+#extract clusters
+groups <- cutree(hc,k=2)
+groups
+```
+
+
+We did multiple iterations of Silhouette plot on the Hierarchical clusters and found that we can have upto 4 clusters for our data. In the Silhouette plot given below we can see that Silhouette width value is zero which means we really dont need the 5th cluster and the Silhouette width value of other 4 clusters are non-zero which means we can have upto 4 clusters.
+
+
+```{r}
+plot(silhouette(cutree(hc,5), distance))
+```
+
+
+K-means Clusters were recreated and the Dendrogram was cut using k=4,
+
+
+```{r}
+
+kc4 <- kmeans(z, centers = 4,iter.max = 100)
+#Plotting the K-means cluster
+z1 <- data.frame(z, kc4$cluster)
+clusplot(z1, kc4$cluster, color=TRUE, shade=F, labels=0, lines=0, main='k-Means Cluster Analysis')
+
+plot(hc, labels = sum_mci_by_hood_spread$Neighbourhood, main='Cluster Dendrogram', cex=0.65)
+rect.hclust(hc,k=4)
+
+```
+
+
+We visualized which neighbourhoods belong to which of the 4 clusters computed by k-means on a Toronto map to assist us to interpret the clusters.
+
+
+```{r, echo=FALSE}
+as.data.frame(Toronto$AREA_NAME) ->a 
+names(a) <- "AREA_NAME"
+
+sum_mci_by_hood_spread$Neighbourhood %>% as.data.frame() -> n
+names(n)<-"Neighbourhood"
+cbind(n, z1 %>% select(cluster = kc4.cluster)) -> n_cluster
+
+a %>% left_join(n_cluster, by= c("AREA_NAME" = "Neighbourhood")) -> neighorhood_cluster
+
+# use the merged column neghorhood_cluster$cluster as a new data in "Toronto"
+Toronto$cluster <- neighorhood_cluster$cluster
+
+# plot
+mapview(Toronto, zcol="cluster", 
+        popup= popupTable(Toronto, zcol =c( "AREA_NAME","cluster"))) 
+
+```
+
+
+###4.3.3 Model Description
+
+
+K-means cluster results for both the 2 Cluster solution and 4 Cluster solution are displayed below,
+
+```{r}
+#2-Cluster solution
+kc
+#4-Cluster solution
+kc4
+```
+
+
+There were 4 clusters created using K-means clustering. The first cluster has 74 neighborhoods, the second has 10 neighborhoods, the third cluster has 20 neighborhoods and the fourth has 36 neighborhoods.
+
+
+```{r}
+counts = sapply(2:4,function(ncl)table(cutree(hc,ncl)))
+names(counts) = 2:4
+counts
+```
+
+
+In Hierarchical clustering, we can see that the first cluster has 65 neighborhoods and the second has 75 clusters in a 2-Cluster solution. Based on the Silhouette plot, we can have upto 4 clusters and when we create a 4-Cluster solution, the neighborhoods are split into groups of 22, 33, 75 and 10.
+
+
+##4.4. Assess model
+
+###4.4.1. Model assessment
+
+
+From the results of K-means Clustering described in the section above, we can see that the first cluster (with 74 neighborhoods) has the least number of Major Crime indicators as its value is less than the other clusters. The second cluster with 10 neighborhoods has higher number of observations for all the 5 types of MCI. The third cluster with 20 neighborhoods has the second highest number of observations for all MCI. The fourth cluster with 36 neighborhoods is relatively safer than the second and third cluster and, has the second least number of observations.
+
+"withinss" and "betweenss" are parameters that can be used to evaluate the K-means Clusters. If we look at our 2-cluster solution, the withinss of our Clusters were 147.2016 and 222.3881 for the 2 clusters and the betweenss was 46.8 %. The parameters improve for the 4-cluster solution, betweenss increased to 65.1 % and, the withinss improved to 153.64693, 39.06571, 24.69546 and  24.99687 respectively for the 4 clusters. But 4-Cluster solution created using K-means explains only 79% of the point variability while the 2-Cluster solution explains 85% of the point variability. Since our motive is to identify hotspots of crime in Toronto city for active patrolling and policing, it makes sense to go with a 4-Cluster solution rather than a 2-Cluster solution.
+
+Examination of the 4-Cluster solution created thru Hierarchical clustering reveals the following information,
+
+
+```{r}
+groups <- cutree(hc,k=4)
+aggregate(z, list(groups), mean)
+```
+
+
+The third cluster seems to have the most negative value corresponding to all the Major Crime indicators - Assault, Auto-theft, Break and enter, Robbery and Theft over, which means it has least number of occurrences of crime. The first cluster seems to have the second safest neighborhoods as it has negative values for Assault, Auto-theft, Break and enter and Theft over. The first cluster has a positive value for Robbery but it still seems to be lower compared with other clusters.
+
+
+The fourth cluster seems to have the highest positive value among all the clusters for all the Major Crime indicators, which means it has the highest number of occurrences of crime. The second cluster is relatively safer than the fourth cluster but less safer than first and third cluster.
+
+
+#5. Evaluation
+
+##5.1. Results Evaluation and Conclusion
+
+###5.1.1. Assessment of data mining results with respect to business success criteria
+
+We used the K mean clustering and Hierarchical clustering to determine the number of clusters that would be ideal for our analysis. A Cluster Dendrogram was used to visualize the clusters obtained through Hierarchical clustering and we also used silhouette function to determine the ideal number of clusters to be used. It was decided to use 4 clusters based on the assessment made in section 4.4.1. In order to assess the results, we used gap statistics to visually inspect the results. This gives us confidence in our clusters. 
+
+The code below was used to perform gap statistics
+
+```{r,echo=FALSE}
+library(cluster)
+gap_stat<-clusGap(z1,FUN=kmeans,nstart=2,K.max = 10,B=500)
+print(gap_stat,method="firstmax")
+
+plot(gap_stat,frame=FALSE,xlab="Number of clusters k")
+abline(v=4,lty=2)
+```
+
+
+As indicated by the table above the first max occurs when the number of clusters are 4. This provides us with the confidence in our number of clusters. The reason we decided to use K means is to due the size of the dataset. Hierarchical clustering tend not to be good with Big Data and it is extremely computational expensive. It was decided to use K means because it is computationaly cheap and fits our Deployment criteria because our App has limited resources.  
+
+
+##5.2. Next steps and Process review
+
+###5.2.1. Review of Processes
+
+The goal of this project was to identify patterns in crime areas in Toronto (via a machine learning model), namely to identify Toronto's most dangerous neighborhoods ('hot spots' of crime) within a given date range; our results and model are to be used by community crime prevention organizations and Toronto Police to make informed decisions and allocate resources towards active crime surveillance in the areas with a high concentration of crime activity. We had selected the data from Toronto Police's Data Portal as our data source, and used clustering algorithms to create our model using CRISP-DM methodology. If our model is successfully used by public safety bodies, or by researchers and community organizations, to make informed decisions, take action, and prevent or mitigate city crime, then we can say that the project's objective has been met.
+
+Though the project has met the business and data mining success criteria, we can still see that there is a lot of scope for improvement. The model provides crime patterns by neighbourhood, but it would also be useful to identify key crime drivers (through this or a related model), to predict the likelihood of a particular crime.
+
+
+###5.2.2. Next steps
+
+The next step is to deploy the model on to a server through a user-friendly Crime App via the R Shiny package, such that community crime prevention organizations and the Police can use it to identify areas of high-crime in Toronto, and to create active crime surveillance programs for crime prevention.
+
+
+#6. Deployment 
+
+Deployment of our model and results was done through a Crime App displayed through R Shiny. 
+
+
+
+#Appendix A
+
+Glossary of Terms
+
+
+Algorithm: A machine learning algorithm is any algorithm that can produce a model by analyzing a dataset. 
+
+betweenss: The between-cluster sum of squares.
+
+Boxplot: A standardized way of displaying the distribution of data based on the five-number summary: minimum, first quartile, median, third quartile, and maximum.
+
+Categorical Variable: A variable that can take on one of a limited and usually fixed number of possible values. 
+
+Clustering Algorithm: An unsupervised learning method used to discover the inherent groupings in the data. For example, customers can be grouped on the basis of their purchasing behavior which is further used to segment the customers.
+ 
+Continuous Variable: A variable that has an infinite number of possible values; any value is possible for the variable. 
+
+CRISP-DM: A methodology that provides a structured approach to planning a data mining project.
+
+Data Mining: The process of discovering patterns in large data sets involving methods at the intersection of machine learning, statistics, and database systems.
+
+Data Preprocessing: A data mining technique that involves transforming raw data into an understandable format. 
+
+Data Quality: An assessment of data's fitness to serve its purpose in a given context. 
+
+Distribution: The distribution of a statistical dataset (or a population) is a listing or function showing all the possible values (or intervals) of the data and how often they occur. 
+
+Exploratory Data Analysis: An approach to analyzing datasets by summarizing their main characteristics; it is used for seeing what the data can depict beyond the formal modeling or hypothesis testing task. 
+
+Feature: An attribute of a data point, usually a part of a feature vector; it can be numerical or categorical. 
+
+Hierarchical clustering: A category of clustering algorithms that create a tree of clusters.
+
+Histogram: A diagram consisting of rectangles whose area is proportional to the frequency of a variable and whose width is equal to the class interval.
+
+K-means: A partitioning clustering algorithm for clustering data into exactly kclusters. It works as follows. First, define k initial cluster centroids. Second, assign each example to the closest centroid. Third, recompute the new position for each centroid as the average of the examples assigned to it. Iterate back to step two.
+
+Machine Learning: A subfield of computer science, mathematics, and statistics that focuses on the design of systems that can learn from and make decisions and predictions based on data. 
+
+Mean: The mean or average that is used to derive the central tendency of a dataset; determined by adding all the data points in a population and then dividing the total by the number of points. 
+
+Median: The value separating the higher half from the lower half of a data sample.
+
+Missing Values: Occur when no data value is stored for the variable in an observation.
+
+Normal Distribution: A function that represents the distribution of many random variables as a symmetrical bell-shaped graph.
+
+Outlier: An observation that lies outside the overall pattern of a distribution.
+
+Range: The difference between the lowest and highest values in a dataset.
+
+Silhouette value: A measure of how similar an object is to its own cluster (cohesion) compared to other clusters (separation).
+
+Summary Statistics: Are used to summarize a set of observations, in order to communicate the largest amount of information as simply as possible.
+
+withinss: Vector of within-cluster sum of squares, one component per cluster.
+
+

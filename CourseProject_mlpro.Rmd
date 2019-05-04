@@ -1,0 +1,1811 @@
+---
+title: "Fraud Detection for Mobile Money: Solving a Business Problem of High Economic Impact Using Machine Learning Methods"
+
+author: "Shabeeth Syed, Durai Nachiappan, Lingling Zhang, Julia Mitroi"
+
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+  word_document:
+    toc: yes
+  pdf_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+#1. Business understanding 
+
+##1.1. Business objectives 
+###1.1.1. Background 
+
+The field of mobile financial services has been a growing market segment, particularly in developing countries where banking systems are not as dense or available as in developed countries.  Mobile money transactions make it easy for people to use or send money electronically without having to access a bank, and foster financial inclusion.  For example, M-Pesa, a mobile phone-based money transfer service in Kenya, has been used by about 93% of all mobile subscribers in Kenya in 2017.  Orange Money, another mobile money transfer service deployed in thirteen African countries, has gathered around 40% of the mobile subscribers of those countries. And mobile financial services have expanded access to financial services to millions of unbanked people in South Africa. Such services work directly over one's phone account, without the need to download an app; the phone is used like a mobile wallet, allowing to pay for things like rent or utilities and to send money to others.  The transactions themselves are made with electronic money, called mMoney (mobile money), where the users can convert cash to mMoney through distributors (e.g., Western Union in North America) and use it to make purchases, to pay bills, or to transfer money to other users.  The receiver gets money directly to his or her mobile wallet.
+
+Apart from the advantages, concerns exist that mobile money can be detrimental to financial integrity since there are proven risk factors linked to mobile financial services such as self-reported information, gaps in transaction monitoring, and a general lack of transaction validation tools. These risk factors make mobile money susceptible to money laundering, that is, misuse through disguising illegally obtained funds to make them seem legal, and more generally to fraud risk, which involves any intentional deception made for financial gain. The potential for abuse and the need for appropriate controls is therefore something which cannot be ignored in the context of mobile money transactions. The economic impact of fraud can be substantial, making the detection of fraud an important effort. 
+
+Financial fraud for mobile money services is usually addressed through different techniques, including simple controls such as thresholds or statistical limits, and more advanced techniques such as data mining-based detection. In this project, we examine fraud risk through data mining, which is the analysis step of pattern recognition and knowledge discovery in databases - a machine learning method commonly used in the financial sector for fraud detection.
+
+
+###1.1.2. Business Objectives 
+
+The objective that motivates this project is fraud risk minimization on behalf of mobile money service providers.  Toward this business objective, this project develops useful solutions for assessing fraud risk and identifying money laundering transactions dynamically, in real time.  Through supervised and unsupervised machine learning techniques, we aim create data models that could be embedded into financial fraud detection software designed specifically for non-bank financial industries, to monitor and detect transactions for illicit and suspicious activity, in compliance with anti-money laundering and counterterrorist financing regulations, in an efficient and cost effective manner. Our models and the associated software could be used by mobile money service providers in their day to day operations to identify fraud, make decisions, and mitigate fraud risk.
+
+
+###1.1.3. Business Success Criteria 
+
+The statistical decisions made by the above-noted machine learning models will be translated into financial security considerations and fraud prevention objectives.  From a business point of view, our model will have a successful outcome if by using it, mobile money service providers make accurate decisions that result in a given, measurable reduction in fraud and money laundering within a given period of time, such as one or three years, within the population of their respective mobile money customers.
+
+
+##1.2. Situation assessment
+
+###1.2.1. Inventory of Resources 
+
+Resources available to our project are as follows:
+
+-	Personnel: As this was a group project, by working on the project all members of our group assumed the roles of business, data, and data mining experts
+-	Data and data sources: The Paysim synthetic dataset of mobile money transactions, which we downloaded from the Kaggle platform; access to the Kaggle website
+-	Computing resources: Windows and Mac platforms, on which we worked on the project
+-	Software: R, R Studio, Microsoft Word and Excel, Shiny, Slidy
+-	Knowledge sources: The ML1000 course material, which includes written and online documentation
+
+
+
+###1.2.2. Requirements, Assumptions, and Constraints
+
+Key requirements of this project are: 
+
+-	The project has to be completed by November 16, 2018
+-	The project outcomes and report have to meet or exceed the standards for ML1000, and to be deemed usable by a bank for the assessment of credit risk
+
+Assumptions: 
+
+-	The data in the Paysim dataset of mobile money transactions are from a normal distribution
+-	The Paysim dataset contains data that are amenable to applying data mining algorithms
+-	The users of our model, mobile money service providers, have the resources to be able to use the model
+
+Constraints:
+
+-	As per the dataset's authors' notes, the data in the Kaggle synthetic dataset we used is limited to isolated cases of relatively straightforward fraud; because of this, and because finding real financial data with fraudulent transactions is difficult to find due to bank privacy, our proposed data models may not, by the way in which they were built, detect more complex cases of fraud and money laundering for mobile financial transactions
+
+
+
+###1.2.3. Risks and Contingencies 
+
+There are no known risks associated with this class project. However, had the project been undertaken in a corporate context, there could have been the risk of not obtaining additional funding depending on the initial data mining results; and the risk of a competitor organization or consulting firms coming up with similar/better models before we developed ours. 
+
+###1.2.4. Terminology
+
+A glossary of terminology relevant to this project is included in Appendix A.
+
+###1.2.5. Costs and Benefits 
+
+In this business context, if one or several of our proposed models are accurate in predicting/detecting fraud in mobile financial transactions, the measurable reduction in fraud obtained by applying a model would be considered to be a benefit both to mobile transactions security and integrity, and to mobile money service providers' business operations. If, by contrary, our model proves to be inaccurate (low algorithm performance), then that would result in costly outcomes, specifically financial loss caused by fraud and money laundering; for example, in this scenario a fraudulent transaction would proceed unnoticed (as it would not be identified by the model/software) and result in financial loss for the service provider or for receivers of a transaction, when it should had been detected at run time and stopped. 
+
+
+##1.3. Determine data mining goals 
+###1.3.1. Data Mining Goals 
+
+For this project, our group converted the business problem/objective noted in 1.1.2. above into a data mining (analytical) problem, with the intended analysis objective being to develop a model for predictive security analysis that can be applied in real time (automatically during a transaction) for money laundering/fraud detection - or several models and select the best-performing one - that providers of mobile money services could use in their operations to identify fraud, make decisions, and mitigate fraud risk.  
+
+The goal of a fraud detection machine learning algorithm would therefore be to detect patterns in a transaction activity reflecting that the transaction involves money laundering; it would do this by 'observing' process behavior (through the data analysis implicitly applied by the model) with respect to a transaction within a money transfer service and matching it with expected behavior given by the model. As part of the data mining process, following the development of our models their performance (accuracy) will also be evaluated.
+
+
+###1.3.2. Data Mining Success Criteria 
+
+A successful data mining outcome would be a model that correctly identifies transactions involving money laundering. A correct decision would be one where a mobile provider identifies (through our data mining model) that a customer transaction is non-malicious and it is indeed honest; as well as when a provider accurately detects that an application is fraudulent and involves money laundering, and stops it, avoiding incurring a financial loss as well as a loss of business integrity. 
+
+Depending on the model being developed, several tools will be used to determine the performance (success) of our algorithms. For example, for a random forest model, we would use both confusion and cost matrices for model evaluation. For a Naïve Bayes classification model, an evaluation tool will be a confusion matrix as well; and possibly additional statistics such as sensitivity, specificity, positive predictive value, and negative predictive value. 
+
+
+##1.4. Project plan 
+
+###1.4.1. Project Plan
+
+This data mining goal noted above in 1.3.1. is to be achieved by this project by using a) a publicly available synthetic dataset of mobile money transactions with fraudulent transactions, b) R programming, and c) CRISP-DM methodology. 
+
+The broad steps of the data mining project plan are:
+
+-	Identifying the data source (described below, under Data Collection).
+-	Selecting the data points that need to be analyzed; or the entire dataset, if applicable.
+-	Extracting the relevant information from the data for our models.
+-	Identifying the best fitting/best performing model.
+-	Interpreting and reporting the results.
+
+
+
+###1.4.2 Initial Assessment of Tools and Techniques 
+
+For this project, we aim to develop several models through supervised and unsupervised machine learning techniques. To solve the business problem stated at the outset of this report, we need to classify mobile money transactions into fraudulent and non-fraudulent.  For this, we plan to use several classification techniques and assess the classification models’ performance in order to select a best performing model.  Classification models find a rule or set of rules to represent data into classes. In the financial sector, rule(s) are typically used to identify fraud risk; as such, a classification model was assessed to be suitable for the business goals of this project.  A classification technique that was used in our analysis is random forest, which is a supervised learning algorithm that creates a forest and makes it random. The “forest” is a combination of decision trees (defined below), most of the time trained by a combination of learning models that enhances the overall result.  In other words, random forest builds a number of decision trees and merges them together to get a more accurate and stable prediction. A decision tree (component of random forest) works as follows: Each internal node represents a “test” on an attribute/variable (e.g. whether an applicant is a foreign worker or not), each branch depicts the outcome of the test, and each leaf node is a class label (decision taken after computing all attributes). A node that has no children is a leaf.  By analyzing the feature (attribute) importance, it can be decided which features to drop because they don’t contribute enough or nothing to the prediction process.  A general rule in machine learning is that the more features there are, the more likely the model will suffer from overfitting; therefore dropping features that don’t make a significant contribution is important.
+
+Another classification model that we plan to use is Naïve Bayes. The Naive Bayesian classifier is an algorithm that uses Bayes' theorem to classify objects. Naive Bayes classifiers assume strong, or naive, independence between attributes of data points. Despite its simplicity, Naive Bayes can often outperform more sophisticated classification methods.
+
+We will also use cluster analysis, which is an unsupervised machine learning method, on a subset of the data records, that are flagged as being fraudulent transactions, to identify clusters of money laundering transactions and find insights, examine the characteristics of the clusters, and provide this information to law enforcement agencies so they could potentially concentrate their efforts on certain individuals or businesses (as depicted by the clusters) for prevention of fraud and money laundering.  Clustering classifies a large group of data points into subsets (clusters) that share the same or similar properties.  A machine learning clustering algorithm discovers the inherent groupings in the data. Thus, clustering is useful in that it can lead to the discovery of previously unknown groupings within the data.  
+
+Another tool used in this project is the CRISP-DM methodology. CRISP-DM is a robust methodology that provides a structured approach to planning a data mining project, and is considered to be the “gold-standard” for data mining projects. (CRISP-DM stands for “CRoss-Industry Process for Data Mining”.)  It is described as a hierarchical process model, with tasks at four levels of abstraction, from general to specific: phase, generic, specialized, and process instance. 
+
+
+#2. Data understanding 
+
+##2.1. Initial data collection
+###2.1.1. Initial Data Collection Report 
+
+For this project, we used a synthetic dataset of mobile money transactions generated by PaySim, a Mobile Money Payment Simulator developed by TESTIMON, a Digital Forensics Research Group of Norwegian University of Science and Technology.
+
+PaySim uses aggregated data from a real dataset of private transactions to generate a synthetic dataset that resembles the normal operation of mobile money transactions, and injects malicious behavior to later evaluate the performance of fraud detection methods.
+
+The dataset, in .csv format, was downloaded from the Kaggle platform: https://www.kaggle.com/ntnu-testimon/paysim1.
+
+
+##2.2. Data description
+###2.2.1. Data Description Report 
+
+PaySim simulates mobile money transactions based on a sample of real transactions extracted from one month of financial logs from a mobile money service implemented in an African country. The original logs were provided by a multinational company, who is the provider of the mobile financial service. This synthetic dataset is scaled down 1/4 of the original dataset and it is created just for Kaggle, according to TESTIMON.
+
+```{r raw data, warning=FALSE}
+library(tidyverse)
+library(Hmisc)
+library(gmodels)
+library(corrgram)
+#library(plyr)
+
+# readRDS("final.project.data.raw.rds") -> data
+# nrow(data) #6362620
+# ncol(data) #11
+# str(data)
+```
+
+
+The downloaded dataset has 6,362,620 rows and 11 columns; among them type, nameOrig, nameDest, isFraud and isFlaggedFraud should be categorical. Therefore, we changed those columns into categorical/factors.
+
+Column ‘step’ maps a unit of time in the real world.  One step is one hour of time. Hence there are 744 steps in total, TESTIMON explained on Kaggle. Column type has 5 levels: CASH-IN, CASH-OUT, DEBIT, PAYMENT and TRANSFER. Column “amount” stands for the transaction in local currency, nameOrig, oldbalanceOrg, newbalanceOrig are the ID, initial balance and new balance of people who started the transaction.  nameDest, oldbalanceDest, newbalanceDest   are the ID, initial balance and new balance of the recipient.  When type is PAYMENT, the nameDest would start with M which stands for Merchants, and the oldbalanceDest and newbalanceDest would be zero.
+
+
+```{r}
+# as.factor categorical vactors
+# factor_vars <- c("type", "nameOrig", "nameDest",
+#                  "isFraud", "isFlaggedFraud")
+# data[factor_vars] <- lapply(data[factor_vars], function(x) as.factor(x))
+# #check str again
+# str(data)
+```
+
+There are no missing values in the dataset, so we did not need to treat missing values.
+
+```{r}
+# check missing value: no missing value
+# sapply(data, function(x) sum(is.na(x))) %>% as.data.frame() -> count.na 
+# count.na %>% mutate(column.name = rownames(count.na)) -> count.na
+# names(count.na)[1] = "na.count"
+# count.na %>% select(column.name, na.count) %>% arrange(desc(na.count))
+
+```
+
+##2.3. Data exploration 
+
+###2.3.1. Data Exploration Report 
+
+For the purpose of analysis’ performance, we scaled down the downloaded dataset to 1/4. Therefore, the total number of rows included in our analysis is 1,590,655.
+
+Our target column is isFraud.  To better understand the features of the dataset, we also created two subsets of the data: fraud and not.fraud, based on the value of isFraud being 1 and 0, respectively.
+
+
+```{r}
+# scaled dwon to 1/4 of downloaded data
+# createDataPartition(data$isFraud, p = 0.25, list = FALSE) -> select 
+# data_select <- data[select,]
+# saveRDS(data_select, "data_select_one.fourth.rds")
+
+readRDS("data_select_one.fourth.rds") -> data 
+nrow(data) #1590655
+
+```
+
+
+####2.3.1.1. Interpreting the Target Variable -- isFraud
+
+As noted, isFraud is our target variable, so we analyzed this column first. Below frequency table and bar chart show that there are only 0.1 percent of fraud transactions in the dataset.
+
+```{r isFraud}
+# understanding original column 10: isFraud----------------------------
+#frequency table
+table(data$isFraud) %>% as.data.frame() %>% rename(isFraud = Var1, Frequency = Freq) %>%
+
+  left_join(
+    table(data$isFraud) %>% prop.table() %>% as.data.frame() %>%
+      rename(isFraud = Var1, Percentage = Freq) %>% mutate(Percentage = round(Percentage, 6)), by = "isFraud") %>%
+
+  arrange(desc(Frequency))
+
+#bar chart
+ggplot(data, aes(isFraud)) + geom_bar(aes(fill = isFraud))
+```
+
+
+####2.3.1.2. Interpreting Transactions throughout a Month -- Understanding Variable 1: step
+
+As mentioned above, the data provider explained that one step is one hour of time, and there are 744 steps in total. We did a summary() of the column step, and found that step ranges from 1 to 743. Below bar graph shows how many transactions happened in each hours through out a month.
+
+
+```{r step}
+# understanding original column 1: step----------------------
+summary(data$step)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+#1.0   156.0   239.0   243.4   335.0   743.0
+ggplot(data, aes(as.factor(step))) + geom_bar(aes(fill = as.factor(step)))+
+  theme(legend.position="none")+
+  theme(axis.text.x=element_text(angle = -90, hjust = 0))
+```
+
+
+####2.3.1.3. Interpreting Transactions in Every 24 Hours -- Create 1st Variable: hour.of.day
+
+Based on the documentation from the data provider, step 1 stands for the first hour of the study month. But it was not specified, and we could not determine if step 1 meant the first hour of a day.  However, as there are 24 hours in a day, we interpreted that step 1 and step 25 should be the same hour of a day, and step 2 and step 26 should be the same hour of a day, and so on.
+
+By creating a new column called hour.of.day, we can see the pattern of transactions in every 24 hours. But we should keep in mind that that there is no confirmation that step 1 means 1 am of a day.
+
+
+```{r hour of day : new column}
+# create new column 1: hour.of.day
+data %>% mutate(hour.of.day = ifelse(step %in% seq(1, 744, 24), 1,
+                             ifelse(step %in% seq(2, 744, 24), 2,
+                             ifelse(step %in% seq(3, 744, 24), 3,
+                             ifelse(step %in% seq(4, 744, 24), 4,
+                             ifelse(step %in% seq(5, 744, 24), 5,
+                             ifelse(step %in% seq(6, 744, 24), 6,
+                             ifelse(step %in% seq(7, 744, 24), 7,
+                             ifelse(step %in% seq(8, 744, 24), 8,
+                             ifelse(step %in% seq(9, 744, 24), 9,
+                             ifelse(step %in% seq(10, 744, 24), 10,
+                             ifelse(step %in% seq(11, 744, 24), 11,
+                             ifelse(step %in% seq(12, 744, 24), 12,
+                             ifelse(step %in% seq(13, 744, 24), 13,
+                             ifelse(step %in% seq(14, 744, 24), 14,
+                             ifelse(step %in% seq(15, 744, 24), 15,
+                             ifelse(step %in% seq(16, 744, 24), 16,
+                             ifelse(step %in% seq(17, 744, 24), 17,
+                             ifelse(step %in% seq(18, 744, 24), 18,
+                             ifelse(step %in% seq(19, 744, 24), 19,
+                             ifelse(step %in% seq(20, 744, 24), 20,
+                             ifelse(step %in% seq(21, 744, 24), 21,
+                             ifelse(step %in% seq(22, 744, 24), 22,
+                             ifelse(step %in% seq(23, 744, 24), 23,
+                             ifelse(step %in% seq(24, 744, 24), 24,NA)))))))))))))))))))))))) %>% as.factor) -> data
+data %>% filter(isFraud==1) -> fraud
+nrow(fraud)
+data %>% filter(isFraud == 0) -> not.fraud
+nrow(not.fraud)
+```
+
+
+The table and bar chart below demonstrate the frequency of transaction throughout 24 hours. The table and graph show that during hour 1 to hour 8, the number of transactions are fewer, and in hour 19, the number transactions is the highest.
+
+```{r hour of day : plot all}
+# all's hour.of.day
+#frequency table
+table(data$hour.of.day) %>% as.data.frame() %>% rename(hour.of.day = Var1, Frequency = Freq) %>%
+
+  left_join(
+    table(data$hour.of.day) %>% prop.table() %>% as.data.frame() %>%
+      rename(hour.of.day = Var1, Percentage = Freq) %>% mutate(Percentage = round(Percentage, 4)), by = "hour.of.day") %>%
+
+  arrange(desc(Frequency))
+
+#bar chart
+#ggplot(data, aes(hour.of.day)) + geom_bar(aes(fill = hour.of.day)) +
+#  theme(legend.position="none")
+
+# bar graph: fraud vs not.fraud
+# count visualization
+ggplot(data, aes(hour.of.day, ..count..)) + geom_bar(aes(fill = isFraud), position = "stack")
+```
+
+To take a clearer look at the transaction frequency for fraud records, we changed the bar chart’s y-axis to percentage. 
+
+```{r hour of day: plot vs isFraud}
+#percentage visualization
+ggplot(data, aes(hour.of.day, ..count..)) + geom_bar(aes(fill = isFraud), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+By plotting the transaction frequency for fraud and non-fraud separately, it was observed that fraud happens more evenly throughout the 24 hours; conversely, not.fraud has obvious day-time vs night time symptoms.
+
+
+```{r hour of day: plot vs isFraud2}
+#fraud:
+ggplot(fraud, aes(hour.of.day)) + geom_bar(aes(fill = hour.of.day)) +
+  theme(legend.position="none")
+
+#not.fraud:
+ggplot(not.fraud, aes(hour.of.day)) + geom_bar(aes(fill = hour.of.day)) +
+  theme(legend.position="none")
+
+```
+
+####2.3.1.4. Interpreting Transactions by Type -- Understanding Variable 2: Type
+
+The frequency table and bar chart below shows how frequency by type for all records. They show that cash out and payment are the most frequency transactions yet debit is the least popular type.
+
+```{r type: plot vs all}
+# frequency table
+table(data$type) %>% as.data.frame() %>% rename(type = Var1, Frequency = Freq) %>%
+
+  left_join(
+    table(data$type) %>% prop.table() %>% as.data.frame() %>%
+      rename(type = Var1, Percentage = Freq) %>% mutate(Percentage = round(Percentage, 2)), by = "type") %>%
+
+  arrange(desc(Frequency))
+
+#bar chart
+ggplot(data, aes(type)) + geom_bar(aes(fill = type))
+
+# type vs isFraud --
+# ggplot(data, aes(data$type, ..count..)) +
+#   geom_bar(aes(fill = isFraud), position = "dodge") +
+#   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+When we just look into fraud records, we found that only cash out and transfer have fraud transactions, they each account for 50 percent out of all fraud records.
+
+
+```{r type: plot vs fraud}
+# fraud vs type: in fraud, only CASH_OUT and TRANSFER, each account for 50%
+table(fraud$type) %>% as.data.frame() %>% rename(type = Var1, Frequency = Freq) %>%
+
+  left_join(
+    table(fraud$type) %>% prop.table() %>% as.data.frame() %>%
+      rename(type = Var1, Percentage = Freq) %>% mutate(Percentage = round(Percentage, 2)), by = "type") %>%
+
+  arrange(desc(Frequency))
+
+ggplot(fraud, aes(type)) + geom_bar(aes(fill = type))
+```
+
+
+####2.3.1.5. Interpreting Transactions by Amount -- Understanding Variable 3: Amount
+
+
+Column Amount stands for the amount of the transaction in local currency. It ranges from 0 to 62,785,417 in our dataset, with a median as 75,286 and mean 179,711.
+
+
+```{r amount: summary, plot vs fraud}
+# understanding original column 3: amount--------------------------
+summary(data$amount)
+#Min.  1st Qu.   Median     Mean  3rd Qu.     Max.
+#0    13454    75286   179711   208809 62785417
+# mu <- plyr::ddply(data, "isFraud", summarise, mean=mean(oldbalanceOrg))
+# head(mu)
+#hist: amount vs isfraud - original
+```
+
+
+By plotting the histogram and density of variable Amount, we found that both not.fraud and fraud records are very unevenly distributed. They both have more transactions of smaller amount, yet fewer transactions of larger amount.
+
+
+```{r amount vs fraud}
+#hist:Amount vs isfraud not zoom in
+ggplot(data, aes(x = amount, color = isFraud, fill = isFraud)) +
+  geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  geom_density(alpha=0.6)+
+  #geom_vline(data=mu, aes(xintercept=  mean, color = isFraud),
+  #           linetype="dashed")+
+  scale_color_manual(values=c("#56B4E9", "#E69F00")) +
+  scale_fill_manual(values=c("#56B4E9", "#E69F00")) +
+  labs(title="Amount's Histogram And Density", x="Amount", y = "Density") +
+  theme_classic()
+
+#hist: amount vs isfraud zoom in
+ggplot(data, aes(x = amount, color = isFraud, fill = isFraud)) +
+  geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  geom_density(alpha=0.6)+
+  #geom_vline(data=mu, aes(xintercept=  mean, color = isFraud),
+  #           linetype="dashed")+
+  scale_color_manual(values=c("#56B4E9", "#E69F00")) +
+  scale_fill_manual(values=c("#56B4E9", "#E69F00")) +
+  labs(title="Amount's Histogram And Density (Adjusted X Axis)", x="Old Balance Original", y = "Density") +
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 1800000))
+```
+
+
+Below is the boxplot of amount by isFraud. We adjusted the y-axis to have a clearer view.
+
+
+```{r amount vs fraud : boxplot}
+
+# box plot of amount ~ isFraud, not zoom in
+ggplot(data, aes(x = isFraud, y = amount, fill = isFraud)) +
+  geom_boxplot()+
+  labs(title="",x="", y = "") +
+  scale_fill_manual(values=c("#56B4E9", "#E69F00")) +  theme_minimal()
+  #coord_cartesian(ylim = c(0, 10000000))
+
+# box plot of amount ~ isFraud, zoom in
+ggplot(data, aes(x = isFraud, y = amount, fill = isFraud)) +
+  geom_boxplot()+
+  labs(title="",x="", y = "") +
+  scale_fill_manual(values=c("#56B4E9", "#E69F00")) +  theme_minimal() +
+  coord_cartesian(ylim = c(0, 1000000))
+```
+
+
+The histogram visualization shows that although none of the 5 types are evenly distributed, PAYMENT is the most unevenly distributed.
+
+
+```{r amount vs type}
+#hist: amount vs type zoom in, no density
+ggplot(data, aes(x = amount, color = type, fill = type)) +
+  geom_histogram(fill="white", binwidth = 5000, position="dodge", alpha=0.5)+
+  #geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  #geom_density(alpha=0.4)+
+  #geom_vline(data=mu, aes(xintercept=  mean, color = type),
+  #           linetype="dashed")+
+  scale_color_brewer(palette="RdYlBu") +
+  scale_fill_brewer(palette="RdYlBu") +
+  labs(title="Histogram of Amount by Type", x="Amount", y = "Count") +
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 700000))
+
+#hist: amount vs type zoom in, with density
+ggplot(data, aes(x = amount, color = type, fill = type)) +
+  geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  geom_density(alpha=0.4)+
+  #geom_vline(data=mu, aes(xintercept=  mean, color = type),
+  #           linetype="dashed")+
+  scale_color_brewer(palette="RdYlBu") +
+  scale_fill_brewer(palette="RdYlBu") +
+  labs(title="Histogram and Density of Amount by Type", x="Amount", y = "Count") +
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 700000))
+
+```
+
+
+Below is the boxplot of variable amount by type. We adjusted the y-axis to have a clearer view.
+
+
+```{r amount vs type : boxplot}
+
+#box plot of amount ~ type, not zoom in
+ggplot(data, aes(x=type, y=amount, fill=type)) +
+  geom_boxplot()+
+  labs(title="",x="", y = "") +
+  scale_fill_brewer(palette="Dark2") + theme_minimal() +
+  coord_cartesian(ylim = c(0, 10000000))
+
+#box plot of amount ~ type, zoom in view
+ggplot(data, aes(x=type, y=amount, fill=type)) +
+  geom_boxplot()+
+  labs(title="",x="", y = "") +
+  scale_fill_brewer(palette="Dark2") + theme_minimal() +
+  coord_cartesian(ylim = c(0, 1000000))
+
+```
+
+
+####2.3.1.6. Interpreting Transactions by Amount Category -- Create 2nd Variable: binned_amount
+
+To better understand the transaction amount, we cut the amount among all records to 20 categories, that we called the column binned_amount. Below bar graphs, with count and percentage as x- and y-axis respectively, show that fraud records appear more often in higher amount categories: category [53896, 75286] and category [36683, 53896].
+
+
+```{r binned_amount vs isfraud}
+# new column 2: binned_amount
+data %>% mutate(binned_amount = cut2(data$amount, g=20, minmax=TRUE, oneval=TRUE)) -> data
+
+# average amount for each bin
+# tapply(data$amount, data$binned_amount, FUN=mean, na.rm=TRUE) %>% as.data.frame() %>%
+#  rename(average.amount = 1)
+
+# visual of the bin_amount vs other variables
+#count
+ggplot(data, aes(data$binned_amount, ..count..)) +
+  geom_bar(aes(fill = isFraud), position = "stack") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+#percentage
+ggplot(data, aes(data$binned_amount, log(..count..))) +
+  geom_bar(aes(fill = isFraud), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+####2.3.1.7. Interpreting Transactions by Original Customer Id -- Understanding Variable 4: nameOrig
+
+All users in nameOrig has an id that begins with C, which may represent customer. There are 1,590,075 unique nameOrig, and 580 (0.04 percent) duplicated user.
+
+```{r nameOrig}
+# understanding original column 4:nameOrig -----------------------
+unique(data$nameOrig) %>% length #1590075
+unique(data$nameOrig) %>% length / nrow(data)
+data %>% filter(duplicated(nameOrig)) %>% nrow #580
+data %>% filter(duplicated(nameOrig)) %>% nrow / nrow(data) #0.0003646297
+```
+
+####2.3.1.8. Interpreting Transactions by Original Customer's Frequency -- Create 3rd and 4th Variable: orig.is.duplicated
+
+We wanted to investigate the transaction frequency of each original customer, so we created 2 columns: orig.is.duplicated (categorical, 0 represents not duplicated, 1 represent duplicated) and orig.duplicated.freq (numerical, which illustrates the frequency of the original customer’s appearance).
+
+```{r orig.is.duplicated, orig.freq}
+# created a df with duplicated nameOrig
+data %>% filter(duplicated(nameOrig)) -> data_orig.duplicated.id
+data_orig.duplicated.id %>% nrow #580
+
+data %>% filter(nameOrig %in% data_orig.duplicated.id$nameOrig) -> data_orig.duplicated
+data_orig.duplicated %>% nrow() #1160
+
+
+# create new column 3: whether orgi is duplicated or not
+data %>% mutate(orig.is.duplicated = ifelse(nameOrig %in% data_orig.duplicated.id$nameOrig, 1, 0) %>% as.factor) -> data
+
+# duplicated orig's transition freqency
+table(data_orig.duplicated$nameOrig) %>% as.data.frame() %>%
+  rename(nameOrig = Var1, orig.freq = Freq) %>%
+  arrange(desc(orig.freq)) -> orig.duplicated.freq
+orig.duplicated.freq %>% nrow() #1590075
+
+
+# create new column 4: orig's duplicated frequency
+data %>% left_join(orig.duplicated.freq, by = "nameOrig") %>%
+         mutate(orig.freq = ifelse(orig.is.duplicated == 0, 1, orig.freq)) -> data
+
+```
+
+
+
+####2.3.1.9. Interpreting Transactions by Original Customer's Old Balance -- Understanding Variable 5: oldbalanceOrg
+
+
+Original customer’s old balance ranged from 0 to 59,585,040. By plotting the histogram by is fraud or not, we could see the distribution of fraud records for original customers has a more even old balance. Yet not.fraud original customer’s old balance is leaning much more to the left.
+
+```{r oldbalanceOrg vs isfraud}
+#understanding original column 5: oldbalanceOrg -------------------------
+summary(data$oldbalanceOrg)
+#    Min.  1st Qu.   Median     Mean  3rd Qu.     Max.
+#       0        0    14200   835103   107334 59585040
+
+#hist oldbalanceOrg vs isfraud
+#mu <- plyr::ddply(data, "isFraud", summarise, mean=mean(oldbalanceOrg))
+#head(mu)
+#original
+# ggplot(data, aes(x = oldbalanceOrg, color = isFraud, fill = isFraud)) +
+#   geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+#   geom_density(alpha=0.6)+
+#   geom_vline(data=mu, aes(xintercept=  mean, color = isFraud),
+#              linetype="dashed")+
+#   scale_color_manual(values=c( "#56B4E9",  "#E69F00")) +
+#   scale_fill_manual(values=c( "#56B4E9",  "#E69F00")) +
+#   labs(title="Old Balance Original's Histogram And Density", x="Old Balance Original", y = "Density") +
+#   theme_classic()
+
+#zoom in
+ggplot(data, aes(x = oldbalanceOrg, color = isFraud, fill = isFraud)) +
+  geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  geom_density(alpha=0.6)+
+  #geom_vline(data=mu, aes(xintercept=  mean, color = isFraud),
+  #           linetype="dashed")+
+  scale_color_manual(values=c( "#56B4E9",  "#E69F00")) +
+  scale_fill_manual(values=c( "#56B4E9",  "#E69F00")) +
+  labs(title="Old Balance Original's Histogram And Density by isFraud (Adjusted X Axis)", x="Old Balance Original", y = "Density") +
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 1700000))
+
+
+# box plot of oldbalanceOrg ~ isFraud
+# ggplot(data, aes(x = isFraud, y = oldbalanceOrg, fill = isFraud)) +
+#   geom_boxplot()+
+#   labs(title="",x="", y = "") +
+#   scale_fill_brewer(palette="Dark2") +  theme_minimal() +
+#   coord_cartesian(ylim = c(0, 5000000))
+```
+
+By plotting the histogram by type, we could tell the distribution of all five types is more leaning to the left, CASH OUT being the most obvious one.
+
+```{r oldbalanceOrg vs type}
+#zoom in
+ggplot(data, aes(x = oldbalanceOrg, color = type, fill = type)) +
+  geom_histogram(fill="white", binwidth = 5000, position="dodge", alpha=0.5)+
+  #geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  #geom_density(alpha=0.6)+
+  #geom_vline(data=mu, aes(xintercept=  mean, color = type),
+  #           linetype="dashed")+
+  scale_color_brewer(palette="RdYlBu") +
+  scale_fill_brewer(palette="RdYlBu") +
+  labs(title="Old Balance Original's Histogram - By Type (Adjusted X Axis)", x="Old Balance Original", y = #"Density") +
+  "Count") +
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 1700000))
+
+#box plot of oldbalanceOrg ~ type, zoom in view
+ggplot(data, aes(x=type, y=oldbalanceOrg, fill=type)) +
+  geom_boxplot() +
+  labs(title="", x="", y = "") +
+  scale_fill_brewer(palette="Dark2") + theme_minimal() +
+  coord_cartesian(ylim = c(0, 1000000))
+
+```
+
+
+####2.3.1.10. Interpreting Transactions by Original Customer's Old Balance Category -- Create 5th Variable:  binned_oldbalanceOrg
+
+We cut all records of original customer's old balance (oldbalanceOrg) into 15 categories, aiming to find potential trends. We named the new column "binned_oldbalanceOrg". The bar graphs below, with count and log of percentage as y-axis respectively, show that among all transactions, most original customers have 0 balance before making a transaction. Conversely, for fraud transactions, usually there is a larger amount of deposit before a transaction is made.
+
+```{r binned_oldbalanceOrg vs isfraud}
+# new column 5: binned_oldbalanceOrg
+data %>% mutate(binned_oldbalanceOrg = cut2(data$oldbalanceOrg, g=20, minmax=TRUE, oneval=TRUE)) -> data
+
+# average oldbalanceOrg for each bin
+# tapply(data$oldbalanceOrg, data$binned_oldbalanceOrg, FUN=mean, na.rm=TRUE) %>% as.data.frame() %>%
+#   rename(average.oldbalanceOrg = 1)
+# visual of the bin_oldbalanceOrg vs isfraud
+ggplot(data, aes(data$binned_oldbalanceOrg, ..count..)) +
+  geom_bar(aes(fill = isFraud), position = "stack") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(data, aes(data$binned_oldbalanceOrg, log(..count..))) +
+  geom_bar(aes(fill = isFraud), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+The bar graphs below depict, respectively, the count and percentage by the five transaction types, in each of the 15 'old balance of original customer' categories.
+
+```{r binned_oldbalanceOrg vs type}
+# visual of the bin_oldbalanceOrg vs type
+ggplot(data, aes(data$binned_oldbalanceOrg, ..count..)) +
+  geom_bar(aes(fill = type), position = "stack") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(data, aes(data$binned_oldbalanceOrg, log(..count..))) +
+  geom_bar(aes(fill = type), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+```
+
+
+####2.3.1.11. Interpreting Transactions by Original Customer's New Balance -- Understanding Variable 5:  newbalanceOrig
+
+Below Histogram and boxplot visualization helped us to understand that original customer's new balance is leaning to the left significantly. For both fraud and not fraud, the median of original customer's new balance is 0, and the mean is 191372.4 and 857035.5 respectively, meaning after the transaction, the fraud original customer's new balance is much lower than that of not fraud original customer.
+
+```{r newbalanceOrig vs isfraud}
+#understanding original column 6: newbalanceOrig-------------------------
+
+summary(data$newbalanceOrig)
+#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#0        0        0   855114   144258 49585040
+
+#median: both are 0
+#median <- plyr::ddply(data, "isFraud", summarise, median(newbalanceOrig))
+#median
+#mu <- plyr::ddply(data, "isFraud", summarise, mean=mean(newbalanceOrig))
+#mu
+#original
+# ggplot(data, aes(x = newbalanceOrig, color = isFraud, fill = isFraud)) +
+#   geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+#   geom_density(alpha=0.6)+
+#   geom_vline(data=mu, aes(xintercept=  mean, color = isFraud),
+#              linetype="dashed")+
+#   scale_color_manual(values=c( "#56B4E9",  "#E69F00")) +
+#   scale_fill_manual(values=c( "#56B4E9",  "#E69F00")) +
+#   labs(title="New Balance Original by isFraud's Histogram And Density", x="New Balance Original", y = "Density") +
+#   theme_classic()
+
+#zoom in
+ggplot(data, aes(x = newbalanceOrig, color = isFraud, fill = isFraud)) +
+  geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  geom_density(alpha=0.6)+
+ # geom_vline(data=mu, aes(xintercept=  mean, color = isFraud),
+ #             linetype="dashed")+
+  scale_color_manual(values=c( "#56B4E9",  "#E69F00")) +
+  scale_fill_manual(values=c( "#56B4E9",  "#E69F00")) +
+  labs(title="New Balance Original by isFraud's Histogram And Density (Adjusted X Axis)", x="New Balance Original", y = "Density") +
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 1300000))
+
+#box
+# box plot of newbalanceOrig ~ isFraud
+ggplot(data, aes(x = isFraud, y = newbalanceOrig, fill = isFraud)) + 
+  geom_boxplot()+
+  labs(title="New Balance Original by isFraud's Boxplot (Adjusted Y Axis)",x="", y = "") +
+  scale_fill_brewer(palette="Dark2") + theme_minimal() +
+  coord_cartesian(ylim = c(0, 1000000))
+```
+
+
+When viewing by type, the calculation and visualization showed that after "cash in" transaction, the original customer's new balance is much higher than other types of transactions, with a mean of 3759281.90 and a media of 1365024.70, followed by "debit" (mean 64649.37, median 16475.79).
+
+
+```{r newbalanceOrig vs type}
+#median
+# median <- plyr::ddply(data, "type", summarise, median(newbalanceOrig))
+# median
+#      type median(newbalanceOrig)
+#1  CASH_IN             1365024.70
+#2 CASH_OUT                   0.00
+#3    DEBIT               16475.79
+#4  PAYMENT                   0.00
+#5 TRANSFER                   0.00
+#mean
+# mu <- plyr::ddply(data, "type", summarise, mean=mean(newbalanceOrig))
+# mu
+#      type   mean
+#1  CASH_IN 1365024.70
+#2 CASH_OUT       0.00
+#3    DEBIT   16475.79
+#4  PAYMENT       0.00
+#5 TRANSFER       0.00
+
+#original
+# ggplot(data, aes(x = newbalanceOrig, color = type, fill = type)) +
+#   geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+#   geom_density(alpha=0.6)+
+#   geom_vline(data=mu, aes(xintercept=  mean, color = type),
+#              linetype="dashed")+
+#   scale_color_brewer(palette="RdYlBu") +
+#   scale_fill_brewer(palette="RdYlBu") +
+#   labs(title="New Balance Original by Type's Histogram And Density", x="New Balance Original", y = "Density") +
+#   theme_classic()
+
+#zoom in
+ggplot(data, aes(x = newbalanceOrig, color = type, fill = type)) +
+  geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  geom_density(alpha=0.6)+
+  #geom_vline(data=mu, aes(xintercept=  mean, color = type),
+  #           linetype="dashed")+
+  scale_color_brewer(palette="RdYlBu") +
+  scale_fill_brewer(palette="RdYlBu") +
+  labs(title="New Balance Original by Type's Histogram And Density (Adjusted X Axis)", x="New Balance Original", y = "Density") +
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 3800000))
+
+# box plot of newbalanceOrig ~ type, original view
+# ggplot(data, aes(x=type, y=newbalanceOrig, fill=type)) + 
+#   geom_boxplot()+
+#   labs(title="New Balance Original by Type's Boxplot",x="", y = "") +
+#   scale_fill_brewer(palette="Dark2") + theme_minimal() +
+#   coord_cartesian(ylim = c(0, 10000000))
+
+#box plot of newbalanceOrig ~ type, zoom in view
+ggplot(data, aes(x=type, y=newbalanceOrig, fill=type)) + 
+  geom_boxplot()+
+  labs(title="New Balance Original by Type's Boxplot (Adjusted Y Axis)",x="", y = "") +
+  scale_fill_brewer(palette="Dark2") + theme_minimal() +
+  coord_cartesian(ylim = c(0, 1000000))
+
+```
+
+
+####2.3.1.12. Interpreting Transactions by Original Customer's New Balance Category -- Create 6th Variable:  binned_newbalanceOrig
+
+We cut all records of original customer's new balance (newbalanceOrg) into 10 categories with an aim to find potential trends. We named the new column "binned_newbalanceOrg". Below bar graphs with count and percentage as y-axis respectively, show that among all transactions, most original customers have 0 balance after transaction. There are either 0 deposit or a larger amount of deposit after fraud transaction is made.
+
+
+```{r binned_newbalanceOrig vs isfraud}
+# new column 6: binned_newbalanceOrig
+data %>% mutate(binned_newbalanceOrig = cut2(data$newbalanceOrig, g=20, minmax=TRUE, oneval=TRUE)) -> data
+
+# average newbalanceOrig for each bin
+# tapply(data$newbalanceOrig, data$binned_newbalanceOrig, FUN=mean, na.rm=TRUE) %>% as.data.frame() %>% 
+#  rename(average.newbalanceOrig = 1)
+# visual of the bin_newbalanceOrig vs type
+ggplot(data, aes(data$binned_newbalanceOrig, ..count..)) + 
+  geom_bar(aes(fill = isFraud), position = "stack") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(data, aes(data$binned_newbalanceOrig, log(..count..))) + 
+  geom_bar(aes(fill = isFraud), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+The trend of binned_newbalanceOrig by type looks similar to that of newbalanceOrig by type.
+
+```{r binned_newbalanceOrig vs type}
+# visual of the bin_newbalanceOrig vs other variables
+ggplot(data, aes(data$binned_newbalanceOrig, ..count..)) + 
+  geom_bar(aes(fill = type), position = "stack") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(data, aes(data$binned_newbalanceOrig, log(..count..))) + 
+  geom_bar(aes(fill = type), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+####2.3.1.13. Interpreting Transactions by Original Customer's New Balance -- Create 7th and 8th Variables: new.minus.old_of.Orig and binned_new.minus.old_of.Orig
+
+We tried to investigate whether the new balance of an original customer minus his/her old balance are the same as the column "Amount", and we found that values in the two variables are not always match. Therefore, we created two new variables: new.minus.old_of.Orig and binned_new.minus.old_of.Orig. We would later calculate the correlations of these new variables to see whether the have significant correlation with the target - isFraud.
+
+```{r create new.minus.old_of.Orig and binned_new.minus.old_of.Orig}
+# new column 7: Orig's new balance - old balance
+data %>% mutate(new.minus.old_of.Orig = newbalanceOrig - oldbalanceOrg) -> data
+
+# new column 8: binned_new.minus.old_of.Orig
+data %>% mutate(binned_new.minus.old_of.Orig = cut2(data$new.minus.old_of.Orig, g=20, minmax=TRUE, oneval=TRUE)) -> data
+```
+
+
+####2.3.1.14. Interpreting Transactions by Destination Customers' ID and Transaction Frequency  -- Understanding Variables 7: nameDest and Create 9th and 10th new Variables: dest.is.duplicated and dest.freq
+
+We analyzed destination customers' ID (nameDest) the same way as we treated the the original customers' ID (nameOrig) - we created two new columns, dest.is.duplicated and dest.freq to investigate whether the destination customer appeared multiple times in our dataset, and how often did they appear. In total there were 918556 unique destination customers, among them 672099 appeared over once.
+
+```{r nameDest, dest.is.duplicated and dest.freq}
+
+# understanding original column 7:nameDest -----------------------
+unique(data$nameDest) %>% length #918556
+data %>% filter(duplicated(nameDest)) %>% nrow #672099
+
+# created a df with duplicated nameDest
+data %>% filter(duplicated(nameDest)) -> data_dest.duplicated.id
+data_dest.duplicated.id %>% nrow #3640258
+
+data %>% filter(nameDest %in% data_dest.duplicated.id$nameDest) -> data_dest.duplicated
+data_dest.duplicated %>% nrow() #4099916
+
+# create new column 11: whether dest is duplicated or not
+data %>% mutate(dest.is.duplicated = ifelse(nameDest %in% data_dest.duplicated.id$nameDest, 1, 0) %>% 
+                  as.factor) -> data
+
+
+# duplicated dest's freqency
+table(data_dest.duplicated$nameDest) %>% as.data.frame() %>%
+  rename(nameDest = Var1, dest.freq = Freq) %>% 
+  arrange(desc(dest.freq)) -> dest.duplicated.freq
+
+dest.duplicated.freq %>% nrow #2722362
+
+# create new column 12: dest's duplicated frequency
+data %>% left_join(dest.duplicated.freq, by = "nameDest") %>% 
+  mutate(dest.freq = ifelse(dest.is.duplicated == 0, 1, dest.freq)) -> data
+str(data)
+
+```
+
+
+####2.3.1.15. Interpreting Transactions by Destination Customers' Old Balance -- Understanding Variables 8: oldbalanceDest
+
+Below analysis and graphs show that in fraud transaction, the destination customer's old balance is much lower (median 1 and mean 660590.5) comparing to not.fraud transactions (median 135207 and mean 1101540.6).
+
+```{r oldbalanceDest vs isFraud}
+#understanding original column 8: oldbalanceDest -------------------------
+summary(data$oldbalanceDest)
+#     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#       0         0    134650   1100980    946201 356015889 
+
+#hist
+#median
+# median<-plyr::ddply(data, "isFraud", summarise, median(oldbalanceDest))
+# median
+# # isFraud median(oldbalanceDest)
+# #1       0                 135207
+# #2       1                      0
+# 
+# #mean
+# mu <- plyr::ddply(data, "isFraud", summarise, mean=mean(oldbalanceDest))
+# mu
+# isFraud  mean
+#1       0 1101540.6
+#2       1  660590.5
+#original
+# ggplot(data, aes(x = oldbalanceDest, color = isFraud, fill = isFraud)) +
+#   geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+#   geom_density(alpha=0.6)+
+#   geom_vline(data=mu, aes(xintercept=  mean, color = isFraud),
+#              linetype="dashed")+
+#   scale_color_manual(values=c( "#56B4E9",  "#E69F00")) +
+#   scale_fill_manual(values=c( "#56B4E9",  "#E69F00")) +
+#   labs(title="Old Balance Original's Histogram And Density", x="Old Balance Original", y = "Density") +
+#   theme_classic()
+
+#zoom in
+ggplot(data, aes(x = oldbalanceDest, color = isFraud, fill = isFraud)) +
+  geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  geom_density(alpha=0.6)+
+  #geom_vline(data=mu, aes(xintercept=  mean, color = isFraud),
+  #           linetype="dashed")+
+  scale_color_manual(values=c( "#56B4E9",  "#E69F00")) +
+  scale_fill_manual(values=c( "#56B4E9",  "#E69F00")) +
+  labs(title="Old Balance of Destination Customer - Histogram And Density (Adjusted X Axis)", x="Old Balance of Destination Customer", y = "Density") +
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 1700000))
+
+#box
+# box plot of oldbalanceDest ~ isFraud
+ggplot(data, aes(x = isFraud, y = oldbalanceDest, fill = isFraud)) + 
+  geom_boxplot()+
+  labs(title="Old Balance of Destination Customer - Box Plot (Adjusted Y Axis)",x="", y = "") +
+  scale_fill_brewer(palette="Dark2") + theme_minimal() +
+  coord_cartesian(ylim = c(0, 3500000))
+```
+
+
+Reviewing destination customers' old balance by type, we can find that as previously mentioned, in all payment transactions, the merchants' record of old balance and new balance are 0. In type "transfer", destination customers' are higher than other types.
+
+
+```{r oldbalanceDest vs type}
+
+# median <- plyr::ddply(data, "type", summarise, median=median(oldbalanceDest))
+# median
+#      type    median
+#1  CASH_IN  548593.4
+#2 CASH_OUT  488174.2
+#3    DEBIT  427990.6
+#4  PAYMENT       0.0
+#5 TRANSFER 1011804.9
+
+#mean
+# mu <- plyr::ddply(data, "type", summarise, mean=mean(oldbalanceDest))
+# mu
+#   type    mean
+#1  CASH_IN 1590058
+#2 CASH_OUT 1496128
+#3    DEBIT 1501278
+#4  PAYMENT       0
+#5 TRANSFER 2551562
+
+#zoom in
+ggplot(data, aes(x = oldbalanceDest, color = type, fill = type)) +
+  geom_histogram(fill="white", binwidth = 5000, position="dodge", alpha=0.5)+
+  #geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  #geom_density(alpha=0.6)+
+  #geom_vline(data=mu, aes(xintercept=  mean, color = type),
+  #           linetype="dashed")+
+  scale_color_brewer(palette="Dark2") +
+  scale_fill_brewer(palette="Dark2")  +
+  labs(title="Old Balance of Destination Customer by Type - Histogram (Adjusted X Axis)", x="Old Balance of Destination Customer", y = "Density") +
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 2600000))
+
+
+
+# #box plot of oldbalanceDest ~ type, zoom out view
+# ggplot(data, aes(x=type, y=oldbalanceDest, fill=type)) + 
+#   geom_boxplot()+
+#   labs(title="",x="", y = "") +
+#   scale_fill_brewer(palette="Dark2") + theme_minimal() +
+#   coord_cartesian(ylim = c(0, 10000000))
+
+#box plot of oldbalanceDest ~ type, zoom in view
+ggplot(data, aes(x=type, y=oldbalanceDest, fill=type)) + 
+  geom_boxplot()+
+  labs(title="Old Balance of Destination Customer by Type - Box Plot (Adjusted Y Axis)", x="", y = "") +
+  scale_fill_brewer(palette="Dark2") + theme_minimal() +
+  coord_cartesian(ylim = c(0, 2000000))
+```
+
+####2.3.1.16. Interpreting Transactions by Destination Customers' Old Balance Category-- Create 11th New Variables:binned_oldbalanceDest
+
+We cut all records of destination customers' new balance (newbalanceOrg) into 13 categories in a new column "binned_oldbalanceDest". Below bar graphs with count and percentage as y-axis respectively, show that among all transactions, most destination customers have 0 balance before transaction. For fraud transactions, the there are relatively more 0 deposit before transaction than not fraud transactions.
+
+```{r binned_oldbalanceDest vs isfraud}
+# new column 11: binned_oldbalanceDest
+data %>% mutate(binned_oldbalanceDest = cut2(data$oldbalanceDest, g=20, minmax=TRUE, oneval=TRUE)) -> data
+
+# average oldbalanceDest for each bin
+
+# tapply(data$oldbalanceDest, data$binned_oldbalanceDest, FUN=mean, na.rm=TRUE) %>% 
+#  as.data.frame() %>% rename(average.oldbalanceDest = 1)
+
+#                  average.oldbalanceDest
+#      0                              0.00
+# [      1,4.07e+04)               18901.30
+# [  40723,1.35e+05)               87509.89
+# [ 134650,2.33e+05)              183129.07
+# [ 232830,3.45e+05)              287370.90
+# [ 345443,4.87e+05)              413154.40
+# [ 487280,6.80e+05)              578077.48
+# [ 679656,9.46e+05)              806116.52
+# [ 946205,1.32e+06)             1123356.53
+# [1324603,1.90e+06)             1592047.42
+# [1904127,2.92e+06)             2356840.43
+# [2916945,5.14e+06)             3843607.38
+# [5141817,3.56e+08]            10738641.36
+
+# visual of the bin_oldbalanceDest vs isfraud
+ggplot(data, aes(data$binned_oldbalanceDest, ..count..)) + 
+  geom_bar(aes(fill = isFraud), position = "stack") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(data, aes(data$binned_oldbalanceDest, log(..count..))) + 
+  geom_bar(aes(fill = isFraud), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+Below is the bar graph view by type.
+
+```{r binned_oldbalanceDest vs type}
+# visual of the bin_oldbalanceDest vs type
+ggplot(data, aes(data$binned_oldbalanceDest, ..count..)) + 
+  geom_bar(aes(fill = type), position = "stack") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(data, aes(data$binned_oldbalanceDest, log(..count..))) + 
+  geom_bar(aes(fill = type), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+####2.3.1.17. Interpreting Transactions by Destination Customers' New Balance -- Understanding Variables 9: newbalanceDest
+
+By analyzing destination customers' new balance by isfraud, we found that in fraud transactions, the destination customer's new balance is higher on average (median 7927.06 and mean 1470208) comparing to not.fraud transactions (median 216862.10 and mean 1225072).
+
+```{r newbalanceDest vs isfraud}
+#understanding original column 9: newbalanceDest
+summary(data$newbalanceDest)
+#     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#       0         0    216700   1225384   1116567 356179279 
+
+#median by isfraud
+
+# median <- plyr::ddply(data, "isFraud", summarise, median=median(newbalanceDest))
+# median
+#  isFraud    median
+#1       0 216862.10
+#2       1   7927.06
+
+#mean
+# mu <- plyr::ddply(data, "isFraud", summarise, mean=mean(newbalanceDest))
+# mu
+#  isFraud    mean
+#1       0 1225072
+#2       1 1470208
+
+# #original
+# ggplot(data, aes(x = newbalanceDest, color = isFraud, fill = isFraud)) +
+#   geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+#   geom_density(alpha=0.6)+
+#   geom_vline(data=mu, aes(xintercept= mean, color = isFraud),
+#              linetype="dashed")+
+#   scale_color_manual(values=c( "#56B4E9",  "#E69F00")) +
+#   scale_fill_manual(values=c( "#56B4E9",  "#E69F00")) +
+#   labs(title="New Balance Original's Histogram And Density", x="New Balance Original", y = "Density") +
+#   theme_classic()
+
+#zoom in
+ggplot(data, aes(x = newbalanceDest, color = isFraud, fill = isFraud)) +
+  geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  geom_density(alpha=0.6)+
+  #geom_vline(data=mu, aes(xintercept= mean, color = isFraud),
+  #           linetype="dashed")+
+  scale_color_manual(values=c( "#56B4E9",  "#E69F00")) +
+  scale_fill_manual(values=c( "#56B4E9",  "#E69F00")) +
+  labs(title="New Balance Original's Histogram And Density (Adjusted X Axis)", x="New Balance Original", y = "Density") +
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 1700000))
+
+#box
+# box plot of newbalanceDest ~ isFraud
+ggplot(data, aes(x = isFraud, y = newbalanceDest, fill = isFraud)) + 
+  geom_boxplot()+
+  labs(title="",x="", y = "") +
+  scale_fill_brewer(palette="Dark2") + theme_minimal() +
+  coord_cartesian(ylim = c(0, 2500000))
+```
+
+
+Examining destination customers' new balance by type, we found in type "transfer", the new balance of destination customers is higher than other types (median 1723251.6 and mean 3533498).
+
+
+```{r newbalanceDest vs type}
+#median
+# median <- plyr::ddply(data, "type", summarise, median=median(newbalanceDest))
+# median
+#      type    median
+#1  CASH_IN  387827.6
+#2 CASH_OUT  687644.7
+#3    DEBIT  446417.9
+#4  PAYMENT       0.0
+#5 TRANSFER 1723251.6
+
+#mean
+# mu <- plyr::ddply(data, "type", summarise, mean=mean(newbalanceDest))
+# mu
+#      type    mean
+# 1  CASH_IN 1468966
+# 2 CASH_OUT 1690516
+# 3    DEBIT 1523897
+# 4  PAYMENT       0
+# 5 TRANSFER 3533498
+
+# hist of newbalanceDest ~ type, zoom in view
+ggplot(data, aes(x = newbalanceDest, color = type, fill = type)) +
+  geom_histogram(fill="white", binwidth = 5000, position="dodge", alpha=0.5)+
+  #geom_histogram(aes(y=..density..), binwidth = 5000, position="identity", alpha=0.5)+
+  #geom_density(alpha=0.6)+
+  #geom_vline(data=mu, aes(xintercept= mean, color = type),
+  #           linetype="dashed")+
+  scale_color_brewer(palette="Dark2") +
+  scale_fill_brewer(palette="Dark2") +
+  labs(title="New Balance Original's Histogram by Type (Adjusted X Axis)", x="New Balance Original", y = "Density") +
+  theme_classic()+
+  coord_cartesian(xlim = c(0, 3600000))
+
+# box plot of newbalanceDest ~ type, zoom in view
+ggplot(data, aes(x=type, y=newbalanceDest, fill=type)) + 
+  geom_boxplot()+
+  labs(title="",x="", y = "") +
+  scale_fill_brewer(palette="Dark2") + theme_minimal() +
+  coord_cartesian(ylim = c(0, 8000000))
+
+```
+
+
+####2.3.1.18. Interpreting Transactions by Destination Customers' New Balance Category-- Create 12th New Variables:binned_newbalanceDest
+
+
+We cut all records of destination customers' new balance (newbalanceOrg) into 14 categories in a new column "binned_newbalanceDest". Below bar graphs with count and percentage as y-axis respectively, show that among all transactions, most destination customers have 0 balance after transaction. 
+
+```{r binned_newbalanceDest}
+# new column 12: binned_newbalanceDest
+data %>% mutate(binned_newbalanceDest = cut2(data$newbalanceDest, 
+                                             g=20, minmax=TRUE, oneval=TRUE)) -> data
+
+# average newbalanceDest for each bin
+#tapply(data$newbalanceDest, data$binned_newbalanceDest, FUN=mean, na.rm=TRUE) %>% as.data.frame() %>%  
+#rename(average.newbalanceDest = 1)
+
+#                     average.newbalanceDest
+# 0.00e+00                              0.00
+# [3.30e-01,3.36e+04)               16961.23
+# [3.36e+04,1.24e+05)               79078.11
+# [1.24e+05,2.17e+05)              169919.67
+# [2.17e+05,3.22e+05)              267758.08
+# [3.22e+05,4.48e+05)              382478.20
+# [4.48e+05,6.11e+05)              526080.07
+# [6.11e+05,8.27e+05)              714074.41
+# [8.27e+05,1.12e+06)              964470.73
+# [1.12e+06,1.52e+06)             1306539.19
+# [1.52e+06,2.14e+06)             1804633.22
+# [2.14e+06,3.20e+06)             2613945.84
+# [3.20e+06,5.51e+06)             4163337.15
+# [5.51e+06,3.56e+08]            11509461.56
+
+
+
+# visual of the bin_newbalanceDest vs isFraud
+ggplot(data, aes(data$binned_newbalanceDest, ..count..)) + 
+  geom_bar(aes(fill = isFraud), position = "stack") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(data, aes(data$binned_newbalanceDest, log(..count..))) + 
+  geom_bar(aes(fill = isFraud), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+```
+
+
+Below is the bar graph view by type.
+
+
+```{r binned_newbalanceDest vs type}
+# visual of the bin_newbalanceDest vs type
+ggplot(data, aes(data$binned_newbalanceDest, ..count..)) + 
+  geom_bar(aes(fill = type), position = "stack") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(data, aes(data$binned_newbalanceDest, log(..count..))) + 
+  geom_bar(aes(fill = type), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+####2.3.1.19. Interpreting Transactions by Destination Customer's New Balance  -- Create 13th and 14th Variables: new.minus.old_of.Dest and binned_new.minus.old_of.Dest
+
+We further created two new variables new.minus.old_of.Dest and binned_new.minus.old_of.Dest which are the new balance of a destination customer minus his/her old balance, and which categories do the values belong to. Most of the values fall in the [-5.47e+04, 1.00e-02) category, according to our visualizatio of binned_new.minus.old_of.Dest by isfraud.
+
+```{r binned_new.minus.old_of.Dest vs isfraud}
+# new column 15: Dest's new balance - old balance
+data %>% mutate(new.minus.old_of.Dest = newbalanceDest - oldbalanceDest) -> data
+
+# new column 16: binned_new.minus.old_of.Dest
+data %>% mutate(binned_new.minus.old_of.Dest = cut2(data$new.minus.old_of.Dest, g=20, minmax=TRUE, oneval=TRUE)) -> data
+
+# average new.minus.old_of.Dest for each bin
+# tapply(data$new.minus.old_of.Dest, data$binned_new.minus.old_of.Dest, FUN=mean, na.rm=TRUE) %>%  
+#  as.data.frame() %>% rename(average.new.minus.old_of.Dest = 1)
+#                       average.new.minus.old_of.Dest
+# [-9.68e+06,-2.21e+05)                   -335177.342
+# [-2.21e+05,-1.25e+05)                   -169221.540
+# [-1.25e+05,-5.47e+04)                    -88637.701
+# [-5.47e+04, 1.00e-02)                     -2949.121
+# [ 1.00e-02, 2.94e+04)                     13353.373
+# [ 2.94e+04, 6.84e+04)                     48976.048
+# [ 6.84e+04, 1.08e+05)                     87875.666
+# [ 1.08e+05, 1.50e+05)                    128301.338
+# [ 1.50e+05, 1.98e+05)                    172866.739
+# [ 1.98e+05, 2.59e+05)                    226483.244
+# [ 2.59e+05, 3.49e+05)                    299598.107
+# [ 3.49e+05, 5.63e+05)                    433148.613
+# [ 5.63e+05, 1.06e+08]                   1696790.618
+
+# visual of the bin_new.minus.old_of.Dest vs other variables
+ggplot(data, aes(data$binned_new.minus.old_of.Dest, ..count..)) + 
+  geom_bar(aes(fill = isFraud), position = "stack") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(data, aes(data$binned_new.minus.old_of.Dest, log(..count..))) + 
+  geom_bar(aes(fill = isFraud), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+Below are the bar graphs of binned_new.minus.old_of.Dest by type. The graphs show that after all "payment" transactions, the destination customers' deposit changed in the range of [-5.47e+04, 1.00e-02) category.
+
+
+```{r binned_new.minus.old_of.Dest vs type}
+# visual of the bin_new.minus.old_of.Dest vs other variables
+ggplot(data, aes(data$binned_new.minus.old_of.Dest, ..count..)) + 
+  geom_bar(aes(fill = type), position = "stack") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(data, aes(data$binned_new.minus.old_of.Dest, log(..count..))) + 
+  geom_bar(aes(fill = type), position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+####2.3.1.20. Interpreting Transactions by isFlaggedFraud -- Understanding the 11th Variables: isFlaggedFraud
+
+From below table, we can see that only 2 out of 2021 (0.098 percent) frauds were flagged as fraud, which means the app's current flagging system's results are insufficient but accurate. 
+
+
+```{r isFlaggedFraud vs type}
+# understanding column 11: isFlaggedFraud----------------------------
+#frequency table
+table(data$isFlaggedFraud) %>% as.data.frame() %>% rename(isFlaggedFraud = Var1, Frequency = Freq) %>% 
+  left_join(
+    table(data$isFlaggedFraud) %>% prop.table() %>% as.data.frame() %>%
+      rename(isFlaggedFraud = Var1, Percentage = Freq) %>% mutate(Percentage = round(Percentage, 6)), by = "isFlaggedFraud") %>% 
+  
+  arrange(desc(Frequency))
+
+#check whether the 2 flagged one are fraud: yes
+data %>% filter(isFlaggedFraud==1) %>% select(isFraud)
+
+# this means only 2 out of 2021 (0.098 percent) are flagged 
+data %>% filter(isFraud==1) %>% nrow
+data %>% filter(isFlaggedFraud==1) %>% nrow / data %>% filter(isFraud==1) %>% nrow 
+  
+```
+
+
+Up to this point in the data exploration, we analyzed all the 11 columns of the original dataset and created 14 new columns with an aim to help us forecast fraud transcations: "hour.of.day", "binned_amount", "orig.is.duplicated", "orig.freq", "binned_oldbalanceOrg", "binned_newbalanceOrig", "new.minus.old_of.Orig", "binned_new.minus.old_of.Orig", "diff.change.amount_of.Orig", "binned_diff.change.amount_of.Orig", "dest.is.duplicated", "dest.freq", "binned_oldbalanceDest", "binned_newbalanceDest", "new.minus.old_of.Dest", "binned_new.minus.old_of.Dest", "diff.change.amount_of.Dest", "binned_diff.change.amount_of.Dest".
+
+
+```{r rearrange column sequence}
+#rearrange columns
+data %>% select(
+  #time:2
+  step, hour.of.day,
+  
+  #type, amount:3
+  type, amount, binned_amount,
+  
+  #orig: 9
+  nameOrig,
+  oldbalanceOrg,
+  newbalanceOrig,
+  orig.is.duplicated,
+  orig.freq,
+  new.minus.old_of.Orig,
+  binned_oldbalanceOrg,
+  binned_newbalanceOrig,
+  binned_new.minus.old_of.Orig,
+
+  
+  # dest: 9
+  nameDest,
+  oldbalanceDest,
+  newbalanceDest,
+  dest.is.duplicated,
+  dest.freq,
+  new.minus.old_of.Dest,
+  
+  binned_oldbalanceDest, 
+  binned_newbalanceDest,
+  binned_new.minus.old_of.Dest,
+  
+  # fraud & flag: 2 
+  isFraud,
+  isFlaggedFraud
+  
+) -> data
+```
+
+
+We calculated the correlation between isFraud and all the categoricial variables, except for "nameOrig" and "nameDest", which are the ID of the customers. Correlation calculation results show that all other categorical variables have significant correlation (p-value < 0.001) with isFraud, except for "orig.is.duplicated" (p-value = 0.037).
+
+
+```{r correlation of catagoricial variables, include= FALSE} 
+# catagoricial variables
+#isFraud vs hour.of.day: p= 0, meaning Chi-square P-value < 0.001 -- significant
+CrossTable(data$isFraud, data$hour.of.day, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_hour.of.day
+
+#isFraud vs type: p= 0, meaning Chi-square P-value < 0.001 -- significant
+CrossTable(data$isFraud, data$type, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_type
+
+#isFraud vs binned_amount: p= 0, meaning Chi-square P-value < 0.001 -- significant
+CrossTable(data$isFraud, data$binned_amount, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_binned_amount
+
+# Orig
+#isFraud vs nameOrig: this does not make sense to calculate, as we are just looking for fraud 
+
+#isFraud vs orig.is.duplicated: p =  0.03725861 no significant correlation
+CrossTable(data$isFraud, data$orig.is.duplicated, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_orig.is.duplicated
+
+#isFraud vs binned_oldbalanceOrg: p= 0, meaning Chi-square P-value < 0.001 -- significant
+CrossTable(data$isFraud, data$binned_oldbalanceOrg, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_binned_oldbalanceOrg
+
+#isFraud vs binned_newbalanceOrig: p= 1.352445e-296, meaning Chi-square P-value < 0.001 -- significant
+CrossTable(data$isFraud, data$binned_newbalanceOrig, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_binned_newbalanceOrig
+
+#isFraud vs binned_new.minus.old_of.Orig: p = 0, meaning Chi-square P-value < 0.001 -- significant
+CrossTable(data$isFraud, data$binned_new.minus.old_of.Orig, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_binned_new.minus.old_of.Orig
+
+
+#Dest
+#isFraud vs nameDest: this does not make sense to calculate, as we are just looking for fraud 
+
+#isFraud vs dest.is.duplicated: p =  5.840994e-09, meaning Chi-square P-value < 0.001 -- significant
+CrossTable(data$isFraud, data$dest.is.duplicated, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_dest.is.duplicated
+
+#isFraud vs binned_oldbalanceDest: p= 4.676648e-100, meaning Chi-square P-value < 0.001 -- significant
+CrossTable(data$isFraud, data$binned_oldbalanceDest, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_binned_oldbalanceDest
+
+#isFraud vs binned_newbalanceDest: p =  4.81231e-38, meaning Chi-square P-value < 0.001 -- significant
+CrossTable(data$isFraud, data$binned_newbalanceDest, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_binned_newbalanceDest
+
+
+#isFraud vs binned_new.minus.old_of.Dest: p =  0, meaning Chi-square P-value < 0.001 -- significant
+CrossTable(data$isFraud, data$binned_new.minus.old_of.Dest, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_binned_new.minus.old_of.Dest
+
+
+#isFraud vs isFlaggedFraud: p= 0, meaning Chi-square P-value < 0.001 -- significant
+CrossTable(data$isFraud, data$isFlaggedFraud, digits=1, prop.r=F, prop.t=F, prop.chisq=F, chisq=T) -> c_isFlaggedFraud
+
+```
+
+```{r correlation of categorical variables - table, echo = FALSE}
+variable <- c(
+"hour.of.day",
+"type",
+"binned_amount",
+"orig.is.duplicated",
+"binned_oldbalanceOrg",
+"binned_newbalanceOrig",
+"binned_new.minus.old_of.Orig",
+"dest.is.duplicated",
+"binned_oldbalanceDest",
+"binned_newbalanceDest",
+"binned_new.minus.old_of.Dest",
+"isFlaggedFraud")
+
+
+p.value <- c(
+c_hour.of.day$chisq$p.value,
+c_type$chisq$p.value,
+c_binned_amount$chisq$p.value,
+c_orig.is.duplicated$chisq$p.value,
+c_binned_oldbalanceOrg$chisq$p.value,
+c_binned_newbalanceOrig$chisq$p.value,
+c_binned_new.minus.old_of.Orig$chisq$p.value,
+c_dest.is.duplicated$chisq$p.value,
+c_binned_oldbalanceDest$chisq$p.value,
+c_binned_newbalanceDest$chisq$p.value,
+c_binned_new.minus.old_of.Dest$chisq$p.value,
+c_isFlaggedFraud$chisq$p.value)
+
+data.frame(variable, p.value) %>% mutate(p.value.less.than.0.001 = ifelse(p.value<0.001, "True", "False"),
+                                         p.value.less.than.0.01 = ifelse(p.value<0.01, "True", "False"))
+```
+
+ 
+We then calculated the correlation between isFraud and all the numerical variables.
+
+ 
+```{r correlation of numerical variables, include = FALSE}
+# Welch Two Sample t-tests for the continuous variables
+
+t.test(data$step ~ data$isFraud) -> c_step # p-value < 2.2e-16, meaning t-test P-value < 0.001 -- significant
+t.test(data$amount ~ data$isFraud) -> c_amount #p-value < 2.2e-16, meaning t-test P-value < 0.001 -- significant
+
+# Orig
+t.test(data$oldbalanceOrg ~ data$isFraud) -> c_oldbalanceOrg #p-value < 2.2e-16, meaning t-test P-value < 0.001 -- significant
+t.test(data$newbalanceOrig ~ data$isFraud) -> c_newbalanceOrig #p-value < 2.2e-16, meaning t-test P-value < 0.001 -- significant
+t.test(data$orig.freq ~ data$isFraud) -> c_orig.freq  #p-value = 0.2058973, meaning no significant
+t.test(data$new.minus.old_of.Orig ~ data$isFraud) -> c_new.minus.old_of.Orig #p-value < 2.2e-16, meaning t-test P-value < 0.001 -- significant
+
+# Dest
+t.test(data$oldbalanceDest ~ data$isFraud) -> c_oldbalanceDest #p-value =0.0004105, meaning t-test P-value < 0.001 -- significant
+t.test(data$newbalanceDest ~ data$isFraud) -> c_newbalanceDest #p-value = 0.067, meaning no significant
+t.test(data$dest.freq ~ data$isFraud) -> c_dest.freq #p-value < 2.2e-16, meaning t-test P-value < 0.001 -- significant
+t.test(data$new.minus.old_of.Dest ~ data$isFraud) -> c_new.minus.old_of.Dest #p-value < 2.2e-16, meaning t-test P-value < 0.001 -- significant
+
+```
+
+
+Correlation calculation results of numerical variables show that all other numerical variables have significant correlation (p-value < 0.001) with isFraud, except for "orig.freq" (p-value = 0.2059) and "newbalnceDest"(p-value = 0.067).
+
+
+```{r correlation of numerical variables - table, echo = FALSE}
+
+variable <- c(
+"step",
+"amount",
+
+"oldbalanceOrg",
+"newbalanceOrig",
+"orig.freq",
+"new.minus.old_of.Orig",
+
+
+"oldbalanceDest",
+"newbalanceDest",
+"dest.freq",
+"new.minus.old_of.Dest"
+)
+
+p.value <- c(
+c_step$p.value,
+c_amount$p.value,
+
+c_oldbalanceOrg$p.value,
+c_newbalanceOrig$p.value,
+c_orig.freq$p.value,
+c_new.minus.old_of.Orig$p.value,
+
+
+c_oldbalanceDest$p.value,
+c_newbalanceDest$p.value,
+c_dest.freq$p.value,
+c_new.minus.old_of.Dest$p.value
+)
+
+data.frame(variable, p.value) %>% mutate(p.value.less.than.0.001 = ifelse(p.value<0.001, "True", "False"),
+                                         p.value.less.than.0.01 = ifelse(p.value<0.01, "True", "False"))
+```
+
+
+After the feature engineering, we included 19 variables thathave significant correlation with isFraud, so we included the 20 columns altogether.
+
+Five columns were excluded: nameOrig, orig.is.duplicated, orig.freq, nameDest, newbalanceDest.
+
+
+```{r}
+# only variable with significant correlation with isFraud are included to fit into model
+data %>% select(-nameOrig, -orig.is.duplicated, -orig.freq, 
+                 -nameDest, -newbalanceDest) %>% names()
+# data %>% select(-nameOrig, -orig.is.duplicated, -orig.freq, 
+#                 -nameDest, -newbalanceDest) -> data_to.use.in.model
+# 
+# saveRDS(data_to.use.in.model,"downscaled_data_to.use.in.model.rds")
+rm(data)
+```
+
+
+##2.4. Verify data quality 
+###2.4.1. Data Quality Report 
+
+
+We assessed that the data quality for this dataset was not perfect. Some details in the dataset seem to indicate this: One column is called "oldbalanceOrg"", which appears to be a typo of "oldbalanceOrig". The data provider noted that "step - maps a unit of time in the real world. In this case 1 step is 1 hour of time. Total steps 744 (30 days simulation)" on [Kaggle]( https://www.kaggle.com/ntnu-testimon/paysim1/home), however, 744 hours whould be 31 days, not 30.
+
+There are 16 rows in the raw data and 5 rows in our selected dataset that have "amount" = 0. The "type" of all these rows is CASH OUT, but we could not find an explanation from the data provider as to why there are records with "amount" = 0
+
+However, as it is hard to find open source datasets of financial transactions, for the purpose of practicing our machine learning knowledge, we still think this was a good-to-use the dataset.
+
+
+```{r data quality}
+# data_raw %>% filter(amount == 0) %>% select(type, amount)
+#        type amount
+# 1  CASH_OUT      0
+# 2  CASH_OUT      0
+# 3  CASH_OUT      0
+# 4  CASH_OUT      0
+# 5  CASH_OUT      0
+# 6  CASH_OUT      0
+# 7  CASH_OUT      0
+# 8  CASH_OUT      0
+# 9  CASH_OUT      0
+# 10 CASH_OUT      0
+# 11 CASH_OUT      0
+# 12 CASH_OUT      0
+# 13 CASH_OUT      0
+# 14 CASH_OUT      0
+# 15 CASH_OUT      0
+# 16 CASH_OUT      0 
+```
+
+
+```{r,include=FALSE,echo=FALSE}
+require(plyr)
+#require(dplyr)
+#require(ggplot2)
+require(data.table)
+require(BBmisc)
+require(h2o)
+require(caret)
+require(cluster)
+require(randomForest)
+require(e1071)
+```
+
+#3 Data preparation
+
+##3.1 Select data 
+###3.1.1 Rationale for Inclusion/Exclusion 
+
+After doing data exploration in section 2, we decided to use a subset of the original dataset’s variables for the model data.  
+
+```{r,include=TRUE, echo=FALSE}
+readRDS("downscaled_data_to.use.in.model.rds") -> model.data
+str(model.data)
+```
+
+There are both numerical and categorical data in this dataset. This meant we had to separate them in order to analyze the outliers.
+
+##3.2 Clean data 
+
+The first step to clean data was to check for missing values and treat them. Using the "unique" and "is.na" functions, we checked if there were missing values.  
+
+```{r,echo=FALSE}
+unique(is.na(model.data))
+```
+
+The R command returned no missing values in the data. Hence, we did not need to treat for missing values. Based on the structure of the data, we separated the data into categorical and numerical, and checked for outliers in the numerical data through descriptive summaries and boxplots.
+
+```{r,echo=FALSE}
+factor.vars = c("step","type","binned_amount","binned_oldbalanceOrg","binned_newbalanceOrig","binned_oldbalanceDest","binned_newbalanceDest","isFraud")
+model.data.factor<- model.data[factor.vars]
+model.data.num<-model.data[c("amount","oldbalanceOrg","newbalanceOrig","oldbalanceDest","dest.freq","new.minus.old_of.Dest")]
+
+#VALIDATING DATA TYPES AFTER SEPARATING 
+str(model.data.factor)
+str(model.data.num)
+colnames(model.data.factor)
+graphs.data<-melt(model.data.num)
+g<-ggplot(graphs.data,aes(factor(variable),value))
+g+geom_boxplot()+facet_wrap(~variable,scale="free") +
+  ggtitle("Figure 1. Box plots Depicting Distribution of all numerical data")
+summary(model.data.num)
+```
+
+##3.3 Construct data 
+###3.3.1 Outlier treatment and Normalization.
+
+Based on the summary and the box plots, we used R’s inner quartile range (IQR) method to remove the outliers. 
+
+```{r,echo=FALSE}
+
+outlier <- function(x) {
+  x[x < quantile(x,0.25) - 1.5 * IQR(x) | x > quantile(x,0.75) + 1.5 * IQR(x)] <- median(x)
+  x
+}
+
+model.data.num.treat <- as.data.frame(lapply(model.data.num, outlier))
+
+normalize.data<-normalize(model.data.num.treat, method = "standardize", range = c(0, 1), margin = 1L, on.constant = "quiet")
+```
+
+Then, the continuous variables were normalized in order to have the weights and scaling equal between them, after which we performed Principal Component Analysis (PCA) to see if one of them could be discarded. 
+
+```{r,echo=FALSE}
+scaled.data <- scale(normalize.data)
+
+pcmp <- princomp(scaled.data)
+pcmp <- prcomp(scaled.data,center=TRUE,scale=TRUE)
+plot(pcmp, type= "lines",main="Figure 2. Elbow Graph for Continuous Variables")
+colnames(normalize.data)
+selected.normalize <- normalize.data[-c(5,6)]
+```
+
+PCA was also performed on the categorical variables by doing dummy encoding. Figure 3 shows that only 3 variables were enough.
+```{r,echo=FALSE}
+dmy.data <- dummyVars("~.",data=model.data.factor)
+factor.data<-data.frame(predict(dmy.data,newdata=model.data.factor))
+pcmp <- prcomp(factor.data,center=TRUE,scale=TRUE)
+plot(pcmp, type= "lines",main="Figure 3. Elbow Graph for Categorical Data")
+colnames(model.data.factor)
+selected.factor<-model.data.factor[-c(4,5,6,7)]
+```
+##3.4 Integrate data 
+###3.4.1 Merged data
+
+After treating and normalizing the continuous data, it was joined back with the categorical data. The join was validated by comparing the number of observations from the original data set with the merged dataset. It should have been the same, since we did not add or remove any rows, and that’s indeed what we found.
+
+```{r,echo=FALSE}
+selected.data <- cbind(selected.factor, selected.normalize)
+colnames(selected.data)
+```
+
+##3.5 Format data 
+###3.5.1 Reformatted Data
+
+Formatting the data was not needed. 
+
+###3.5.2 Dataset 
+###3.5.3 Dataset Description 
+
+The dataset was described in detail in Sections 1 and 2 of the report.
+
+
+#4 Modeling 
+
+##4.1 Select modeling technique 
+###4.1.1 Modeling Technique
+
+For our project, we used both supervised and unsupervised machine learning methods to explore the data and create models for fraud risk minimization for mobile money financial services, based on the dataset noted above.  For supervised learning, we decided to pursue the Naive Bayees and Random Forest algorithms; and for unsupervised learning Hierarchical Clustering.  Supervised learning will give us the power to predict whether a transaction is a fraud; and unsupervised learning will provide insights gleaned from the data.
+
+
+###4.1.2 Modeling Assumptions
+
+Both supervised and unsupervised learning algorithms rely on certain assumptions in order to be considered valid.  For the algorithm types that we used, the assumptions were as follows:
+
+1) Naive Bayes can be trained efficiently in a supervised learning setting. The key assumption for the Naive Bayes classifier is that it considers each of the features to contribute independently to the probability of the target regardless of any correlations between the features. 
+
+2) The assumptions for Random Forest are as follows:
+- At each step of building individual tree we find the best split of data
+- We do not use the whole dataset, but bootstrap sample while building the tree
+- The individual output are aggregated by averaging
+
+3) K-means clustering assumptions: 
+- Variance of the distribution of each attribute (variable) is spherical
+- All variables have the same variance
+- The prior probability for all k clusters are the same, i.e. each cluster has roughly equal number of observations
+
+
+##4.2 Generate Test Design
+###4.2.1 Test Design
+
+The dataset was divided into test and train datasets. The train dataset was created to be representative of the original dataset; this was done by checking the proportions of the isFraud flag. In the original dataset, 13% of the records were labelled as Fraud and the rest as not Fraud, and these were the proportions in the train dataset as well. The train dataset was used to fit the models.  The test dataset was the sample of data used to provide an unbiased evaluation of the final models fit on the training dataset.
+
+```{r,echo=FALSE}
+isfraud<-subset(selected.data,selected.data$isFraud=='1')
+isnotfraud<-subset(selected.data,selected.data$isFraud=='0')
+
+selected.data$isFraud %>% table() %>% prop.table()
+train_set <- createDataPartition(selected.data$isFraud, p = 0.70, list = FALSE) 
+```
+
+##4.3 Build Model 
+###4.3.1 Parameter Settings
+
+```{r,echo=FALSE}
+#Below code is to validate our split is representative, note: each time we run createDataPatition, below result may vary a bit
+train_target <- selected.data$isFraud[train_set] #train set's target 
+train_target %>% table() %>% prop.table()
+
+
+test_target <- selected.data$isFraud[-train_set] #test set's target 
+test_target %>% table %>% prop.table
+```
+
+After ensuring that our split was representative, we created the training and test datasets, using parameters to split the data.
+
+```{r,echo=FALSE}
+train <- selected.data[train_set, ]
+test <- selected.data[-train_set, ]
+colnames(isfraud)
+```
+
+The most common method today used for preventing illegal financial transactions
+consists of flagging different clients according to perceived risk and restricting their transactions using thresholds. Transactions that exceed these thresholds require extra scrutiny whereby the client needs to declare the precedence of the funds. These thresholds are usually set by law without distinction made between different economic sectors or actors. Thresholds are usually set for Transactional amount. Also, the original balance of the account can be used as a measure of risk.  We created a dataset with all these features, and applied Clustering to see if we can identify any patterns among the fraud transactions.
+
+
+```{r,echo=FALSE}
+clustering.data.all <- cbind(model.data.factor, normalize.data)
+clustering.data.all <- subset(clustering.data.all, clustering.data.all$isFraud == 1)
+
+#Grouping the data by transactional amount range 
+grp.cluster.data <- group_by(clustering.data.all, binned_amount)
+final.clustering.data <- grp.cluster.data[,-c(1:8)]
+colnames(final.clustering.data)
+str(final.clustering.data)
+```
+
+###4.3.2 Models
+
+The Random Forest model was created using the training dataset and using the 9 variables described above in Section 3 as predictors. Given below is the plot of the model.
+
+```{r,echo=FALSE}
+# Building the model 
+# Set a random seed
+
+set.seed(746)
+#rf_model <- randomForest(factor(isFraud) ~amount+oldbalanceOrg+newbalanceOrig+oldbalanceDest,data = train)
+
+nb_tune <- data.frame(fL = 0,usekernel=FALSE)
+
+set.seed(746)
+fit1<-naiveBayes(train,train$isFraud,type='raw')
+```
+
+We also wanted to check how the data is Clustered using K-means algorithm. Before we used K-means, we had to determine the optimal value of K. We used WSS plot to find the K value,
+
+```{r}
+wss <- (nrow(final.clustering.data)-1) * sum(apply(final.clustering.data, 2, var))
+for (i in 2:10) wss[i] <- sum(kmeans(final.clustering.data, centers=i)$withiness)
+plot(1:10, wss, type='b', xlab='Number of Clusters', ylab='Within groups sum of squares')
+
+```
+
+From the WSS plot we were able to identify the value of K as being 2.
+
+We generated the K-means clusters with K=2 and also plotted the clusters.
+
+```{r}
+#K means Clustering with 2 Clusters
+kc2 <- kmeans(final.clustering.data, centers = 2,iter.max = 100)
+
+#Plotting the model
+z4 <- data.frame(final.clustering.data, kc2$cluster)
+clusplot(z4, kc2$cluster, color=TRUE, shade=F, labels=0, lines=0, main='k-Means Cluster Analysis')
+
+```
+
+###4.3.3 Model Descriptions
+
+```{r,echo="FALSE"}
+#plot(rf_model, ylim=c(0,1.5), main = "Figure 5. Error Rate of the Model")
+#    legend('topright', colnames(rf_model$err.rate), col=1:3, fill=1:3)
+```
+
+Predict using the test set:
+```{r}
+pred1<-predict(fit1,newdata=test)
+#prediction <- predict(rf_model, test)
+#importance(rf_model)
+#varImpPlot(rf_model,  main="Figure 6. Importance of Each Predictor Variables in Random Forest Model", cex=0.8)
+```
+
+From plot of the model, we can see that Random Forest has used up to 500 trees for making the prediction and, we could also see that the error rate for records with isFraud = 0 is higher than the error rate for records with isFraud = 1. This is mainly because of the composition of the original dataset, which only had 13% records with isFraud = 1. In general, a Random Forest model is able to predict more accurately when the number of records is higher.
+
+In order to evaluate the Random Forest model we created a confusion matrix. 
+
+```{r,echo=FALSE}
+#confusionMatrix(prediction, factor(test$isFraud))
+```
+Below is the confusion matrix for Naive Bayes.
+```{r,echo=FALSE}
+confusionMatrix(pred1,factor(test$isFraud))
+```
+
+Given below are the details of the model created using Unsupervised technique - K-means clustering.
+
+```{r}
+kc2
+```
+
+There were 2 clusters created using K-means clustering technique. The first cluster has 290 transaction amount bins and the second cluster has 1731 bins. The first cluster has a very high transactional amount when compared with second cluster. So, one way for authorities to prevent such illegal transactions could be to prevent transactions within the bins of the first cluster from completing or add additional security measures. 
+
+
+
+##4.4 Assess Model
+###4.4.1 Model Assessment 
+
+When comparing the confusion matrices for the Random Forest and Naive Bayes models, it could be seen that Random Forest performs slightly better than Naive Bayes. However, the evaluation shows that the Naive Bayes classifier can deliver similar results as Random Forest even though Naive Bayes is a simpler model and requires less training time. Furthermore, Naive Bayes cannot result in overfitting because it is a simple model. On the other hand, Random Forest is prone to overfitting due to its complexity. Therefore, Naive Bayes can quickly adapt if the data is dynamic and keeps changing, as is the case with mobile money transactions. With Random Forest, the model has to be rebuilt every time.
+
+#5. Evaluation
+##5.1. Results Evaluation and Conclusion
+###5.1.1. Assessment of data mining results with respect to business success criteria
+
+The Confusion matrix for Random Forest indicates the model is 99.87% accurate and for Naive Bayes the accuracy is 99.80%. We chose Naive Bayes for Fraud prediction for mobile money transactions because the data in these transactions is dynamic and Naive Bayes is a low maintenance model that works fairly well for this type of business context. 
+
+
+##5.2. Next steps and Process review
+###5.2.1. Review of Processes
+The goal of this project was to create a model that could be used to detect Fraud and this would in turn ensure risk minimization. We had selected the data from Kaggle, and compared the Random Forest and Naive Bayes algorithms. We created our model using CRISP-DM methodology, and after evaluation selected Naive Bayes due to its simplicity and its adaptability to change, which is key in mobile financial services.
+
+Though the project has met the Business success criteria we can still see that there is a lot of scope for improvement. The number of Fraud transactions was quite sparse and as a result, the error rate for the Random Forest Model was higher than non-error Rate. Furthermore, as we worked on this project, we noticed there were some consistency issues with the dataset itself, which may have skewed our results.
+
+
+###5.2.2. Next steps
+Since it meets the Business success criteria and data mining success criteria, our Naïve Bayes model will be deployed as an app through the RShiny package, and also using R Markdown.
+
+#6. Deployment
+We developed our model in a Shinyapp for demonstration purposes. The model could be deployed by mobile money transaction providers that needs to detect and stop fraud transactions before they happen.
